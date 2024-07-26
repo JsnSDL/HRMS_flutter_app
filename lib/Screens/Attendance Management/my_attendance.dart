@@ -357,7 +357,7 @@ class _MyAttendanceState extends State<MyAttendance> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Done: ',
+                                'Status: ',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.red,
