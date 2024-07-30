@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hrm_employee/Screens/Attendance%20Management/attendance_storrage.dart';
 import 'package:hrm_employee/Screens/Attendance%20Management/my_attendance.dart';
-import 'package:hrm_employee/Screens/Work%20Report/daily_work_report.dart';
+import 'package:hrm_employee/Screens/Outwork%20Submission/daily_work_report.dart';
 import 'package:hrm_employee/services/location_util.dart';
 import 'package:nb_utils/nb_utils.dart';
 

@@ -68,6 +68,15 @@ class _SelectTypeState extends State<SelectType> {
                         style: kTextStyle.copyWith(
                             color: kGreyTextColor, fontSize: 12.0),
                       ),
+                       trailing: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 15.0,
+                        ),
+                        onPressed: () {
+                          const SignIn().launch(context);
+                        },
+                      ),
                     ),
                   ),
                 ),

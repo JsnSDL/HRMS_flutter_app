@@ -104,5 +104,27 @@ exports.getAllUser = (req, res) => {
     });
 };
 
+exports.getAllUserTask = (req, res) => {
+  const sql = `
+    SELECT 
+      ejd.empcode,
+      ejd.emp_fname, 
+      des.designationname
+    FROM tbl_intranet_employee_jobDetails ejd
+    JOIN tbl_intranet_designation des ON ejd.degination_id = des.id
+    ORDER BY ejd.empcode ASC, des.designationname ASC
+    OFFSET 3 ROWS
+  `;
 
+  pool.request()
+    .query(sql, (err, results) => {
+      if (err) {
+        console.error('Error executing query: ', err);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+      console.log(results.recordset);
+      return res.status(200).json(results.recordset);
+      
+    });
+};
 

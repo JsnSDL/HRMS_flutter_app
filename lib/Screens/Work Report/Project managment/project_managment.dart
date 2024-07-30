@@ -1,6 +1,5 @@
 // ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api
 import 'package:flutter/material.dart';
-import 'package:hrm_employee/Screens/Work%20Report/Project%20managment/assign_project.dart';
 import 'package:hrm_employee/Screens/Work%20Report/Project%20managment/project_progress.dart';
 
 import 'package:nb_utils/nb_utils.dart';
@@ -73,7 +72,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                         leading: const Image(
                             image: AssetImage('images/leaveapplication.png')),
                         title: Text(
-                          'Project progress',
+                          'Project Progress',
                           maxLines: 2,
                           style: kTextStyle.copyWith(
                               color: kTitleColor, fontWeight: FontWeight.bold),

@@ -14,7 +14,6 @@ class TaskEditPage extends StatefulWidget {
   final int id;
   final String taskName;
   final String project;
-  final String dept;
   final String endDate;
   final String description;
   final String status;
@@ -23,7 +22,6 @@ class TaskEditPage extends StatefulWidget {
     required this.id,
     required this.taskName,
     required this.project,
-    required this.dept,
     required this.endDate,
     required this.description,
     required this.status,
@@ -35,11 +33,10 @@ class TaskEditPage extends StatefulWidget {
 
 class _TaskEditPageState extends State<TaskEditPage> {
   late TextEditingController _taskNameController;
-  late TextEditingController _projectController;
   late TextEditingController _endDateController;
   late TextEditingController _descrController;
   late String _status;
-  String? _depar;
+  String? _project;
   late UserData userData;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
@@ -49,7 +46,7 @@ class _TaskEditPageState extends State<TaskEditPage> {
     'Completed': 1,
   };
 
-  static const Map<int, String> departmentId = {
+  static const Map<int, String> projectId = {
     1: 'HRMS Old',
     2: 'HRMS New',
     3: 'UI Development',
@@ -60,11 +57,11 @@ class _TaskEditPageState extends State<TaskEditPage> {
   void initState() {
     super.initState();
     _taskNameController = TextEditingController(text: widget.taskName);
-    _projectController = TextEditingController(text: widget.project);
     _endDateController = TextEditingController(text: '');
     _descrController = TextEditingController(text: widget.description);
     _status = widget.status;
-    _depar = widget.dept;
+    _project = widget.project;
+
 
     // Initialize selectedDate and selectedTime if there is time included in widget.endDate
     if (widget.endDate.contains('T')) {
@@ -87,7 +84,6 @@ class _TaskEditPageState extends State<TaskEditPage> {
   @override
   void dispose() {
     _taskNameController.dispose();
-    _projectController.dispose();
     _endDateController.dispose();
     _descrController.dispose();
     super.dispose();
@@ -119,9 +115,8 @@ class _TaskEditPageState extends State<TaskEditPage> {
     final body = json.encode({
       'ID': widget.id,
       'empcode': userData.userID,
-      'project': _projectController.text,
+      'project': _project,
       'task_name': _taskNameController.text,
-      'dept': _depar,
       'descr': _descrController.text,
       'end_date': endDate.toIso8601String(), // Ensure to convert to UTC string
       'status': statusId[_status],
@@ -177,27 +172,34 @@ class _TaskEditPageState extends State<TaskEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20.0),
-                    Column(
+                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Project Name',
+                          'Project',
                           style: TextStyle(
                               fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8.0),
-                        TextField(
-                          controller: _projectController,
-                          decoration: const InputDecoration(
-                            // labelText: 'Project Name',
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20.0))),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 1.5),
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                          child: CustomDropdown(
+                            items: projectId.values.toList(),
+                            hintText: 'Select Project',
+                            initialItem: _project,
+                            onChanged: (newValue) {
+                              setState(() {
+                                _project = newValue.toString();
+                              });
+                            },
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20.0),
+                    const SizedBox(height: 16.0),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -219,34 +221,7 @@ class _TaskEditPageState extends State<TaskEditPage> {
                       ],
                     ),
                     const SizedBox(height: 20.0),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Select Department',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey, width: 1.5),
-                            borderRadius: BorderRadius.circular(15.0),
-                          ),
-                          child: CustomDropdown(
-                            items: departmentId.values.toList(),
-                            hintText: 'Select Department',
-                            initialItem: _depar,
-                            onChanged: (newValue) {
-                              setState(() {
-                                _depar = newValue.toString();
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
+                  
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:hrm_employee/Screens/Outwork%20Submission/edit_task.dart';
 import 'package:hrm_employee/constant.dart';
 import 'package:intl/intl.dart'; // Import the intl package
 
-class TaskDetailPage extends StatefulWidget {
+class DailyTaskDetailPage extends StatefulWidget {
   final int id;
   final String taskName;
   final String project;
+  final String dept;
   final String endDate;
   final String description;
   final String status;
 
-  TaskDetailPage({
+  const DailyTaskDetailPage({
     required this.id,
     required this.taskName,
     required this.project,
+    required this.dept,
     required this.endDate,
     required this.description,
     required this.status,
   });
 
   @override
-  _TaskDetailPageState createState() => _TaskDetailPageState();
+  _DailyTaskDetailPageState createState() => _DailyTaskDetailPageState();
 }
 
-class _TaskDetailPageState extends State<TaskDetailPage> {
+class _DailyTaskDetailPageState extends State<DailyTaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     // Splitting the end date and time
@@ -38,9 +39,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         : '';
 
     return Scaffold(
-      backgroundColor: kMainColor,
+      backgroundColor: const Color.fromARGB(255, 84, 27, 94),
       appBar: AppBar(
-        backgroundColor: kMainColor,
+        backgroundColor: const Color.fromARGB(255, 84, 27, 94),
         elevation: 0.0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
@@ -48,26 +49,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           style: const TextStyle(
               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TaskEditPage(
-                    id: widget.id,
-                    taskName: widget.taskName,
-                    project: widget.project,
-                    endDate: widget.endDate,
-                    description: widget.description,
-                    status: widget.status,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -102,6 +83,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildDetailColumn('Project', widget.project),
+                      _buildDetailColumn('Department', widget.dept),
                       _buildDetailColumn('End Date', date),
                       _buildDetailColumn('End Time', time12),
                       _buildDetailColumn('Description', widget.description),

@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:hrm_employee/Screens/Admin%20Dashboard/Dailywork_managment/daily_task_details.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // Import DateFormat for date and time formatting
 
-import '../../constant.dart';
 import 'package:provider/provider.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
-import 'package:hrm_employee/Screens/Outwork%20Submission/edit_task.dart';
 import 'package:hrm_employee/Screens/Outwork%20Submission/task_detail_page.dart';
 
-class DailyWorkReport extends StatefulWidget {
-  const DailyWorkReport({Key? key}) : super(key: key);
+class DailyTask extends StatefulWidget {
+  final String? userId;
+
+  const DailyTask({Key? key, required this.userId}) : super(key: key);
 
   @override
   _DailyWorkReportState createState() => _DailyWorkReportState();
 }
 
-class _DailyWorkReportState extends State<DailyWorkReport>
+class _DailyWorkReportState extends State<DailyTask>
     with SingleTickerProviderStateMixin {
   late UserData userData;
   late TabController _tabController;
@@ -27,6 +28,7 @@ class _DailyWorkReportState extends State<DailyWorkReport>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     fetchData();
+    print(widget.userId);
   }
 
   Future<void> fetchData() async {
@@ -40,7 +42,7 @@ class _DailyWorkReportState extends State<DailyWorkReport>
           'Authorization': 'Bearer ${userData.token}',
         },
         body: json.encode({
-          'empcode': userData.userID,
+          'empcode': widget.userId,
         }),
       );
 
@@ -95,9 +97,9 @@ class _DailyWorkReportState extends State<DailyWorkReport>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kMainColor,
+      backgroundColor: const Color.fromARGB(255, 84, 27, 94),
       appBar: AppBar(
-        title: const Text('Daily work List',
+        title: const Text('Daily Task List',
             style: TextStyle(color: Colors.white)),
         bottom: TabBar(
           controller: _tabController,
@@ -111,7 +113,7 @@ class _DailyWorkReportState extends State<DailyWorkReport>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white.withOpacity(0.6),
         ),
-        backgroundColor: kMainColor,
+        backgroundColor: const Color.fromARGB(255, 84, 27, 94),
         elevation: 0.0,
         titleSpacing: 0.0,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -155,6 +157,14 @@ class _DailyWorkReportState extends State<DailyWorkReport>
 
     filteredTasks = filteredTasks.reversed.toList();
 
+    if (filteredTasks.isEmpty) {
+      return const Center(
+        child: Text(
+          'No tasks available',
+          style: TextStyle(fontSize: 16, color: Colors.black54),
+        ),
+      );
+    }
     return ListView.builder(
       itemCount: filteredTasks.length,
       itemBuilder: (context, index) {
@@ -171,7 +181,7 @@ class _DailyWorkReportState extends State<DailyWorkReport>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => TaskDetailPage(
+                builder: (context) => DailyTaskDetailPage(
                   id: task['id'],
                   taskName: task['task_name'],
                   project: task['project'],
@@ -182,25 +192,6 @@ class _DailyWorkReportState extends State<DailyWorkReport>
                 ),
               ),
             );
-          },
-          onEdit: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskEditPage(
-                  id: task['id'],
-                  taskName: task['task_name'],
-                  project: task['project'],
-                  dept: task['dept'],
-                  endDate: task['end_date'],
-                  description: task['descr'],
-                  status: task['status'],
-                ),
-              ),
-            ).then((_) {
-              // Refresh the list after editing
-              fetchData();
-            });
           },
         );
       },
@@ -217,7 +208,6 @@ class CustomTaskCard extends StatelessWidget {
   final String description;
   final String status;
   final VoidCallback? onTap;
-  final VoidCallback? onEdit;
 
   const CustomTaskCard({
     Key? key,
@@ -229,7 +219,6 @@ class CustomTaskCard extends StatelessWidget {
     required this.description,
     required this.status,
     this.onTap,
-    this.onEdit,
   }) : super(key: key);
 
   Color getBorderColor(String status) {
@@ -260,41 +249,46 @@ class CustomTaskCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: getBorderColor(status),
-              width: 8,
-            ),
-          ),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.white.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3), // changes position of shadow
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 0,
+              blurRadius: 8,
+              offset: const Offset(0, 4), // Position of shadow
             ),
           ],
         ),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          title: Text(taskName),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Project: $project'),
-              Text('Department: $dept'),
-              Text('Date: $date'), // Displaying only date
-              if (time12.isNotEmpty)
-                Text('Time: $time12'), // Displaying only time in 12-hour format
-              // Text('Description: $description'),
-              Text('Status: $status'),
-            ],
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                color: getBorderColor(status),
+                width: 8,
+              ),
+            ),
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
           ),
-          trailing: IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: onEdit,
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            title: Text(
+              taskName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Project: $project'),
+                Text('Department: $dept'),
+                Text('Date: $date'), // Displaying only date
+                if (time12.isNotEmpty)
+                  Text(
+                      'Time: $time12'), // Displaying only time in 12-hour format
+                Text('Status: $status'),
+              ],
+            ),
           ),
         ),
       ),

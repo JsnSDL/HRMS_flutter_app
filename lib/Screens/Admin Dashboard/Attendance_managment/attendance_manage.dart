@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hrm_employee/constant.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:hrm_employee/providers/user_provider.dart';
@@ -84,6 +85,40 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
     super.dispose();
   }
 
+String determineStatus(Map<String, dynamic> record) {
+  bool hasIntime = record['intime'] != null;
+  bool hasOuttime = record['outtime'] != null;
+
+    DateTime parseDateTime(String dateTimeStr) {
+    if (dateTimeStr.endsWith('Z')) {
+      dateTimeStr = dateTimeStr.substring(0, dateTimeStr.length - 1);
+    }
+    return DateTime.parse(dateTimeStr);
+  }
+  if (hasIntime) {
+    DateTime intime = parseDateTime(record['intime']);
+    DateTime nineThirty = DateTime(intime.year, intime.month, intime.day, 9, 31);
+    if (intime.isBefore(nineThirty)) {
+      return 'Present';
+    } else {
+      return 'Late';
+    }
+  }
+
+  if (hasOuttime) {
+    DateTime outtime = DateTime.parse(record['outtime']);
+    DateTime sixFortyFive = DateTime(outtime.year, outtime.month, outtime.day, 18, 45);
+
+    if (outtime.isBefore(sixFortyFive)) {
+      return 'Present';
+    } else {
+      return 'Mis-punch';
+    }
+  }
+
+  return 'Absent';
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,7 +176,7 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                       final record = filteredAttendanceData[index];
                       return AttendanceCard(
                         name: record['name'],
-                        status: record['intime'] != null ? 'Present' : 'Absent',
+                        status: determineStatus(record),
                         intime: record['intime'] != null
                             ? DateTime.parse(record['intime'])
                             : null,
@@ -285,14 +320,14 @@ class AttendanceCard extends StatelessWidget {
                   Text(
                     'Status: $status',
                     style: TextStyle(
-                      color: status == 'Present' ? Colors.green : Colors.red,
+                      color: StatusColor(status),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 70.0),
+            const Spacer(),
             Expanded(
               flex: 3,
               child: Column(
@@ -316,5 +351,17 @@ class AttendanceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+   StatusColor(String status) {
+    switch (status) {
+      case 'Present':
+        return kGreenColor;
+      case 'Absent':
+        return Colors.red;
+      case 'Mis-punch':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 }

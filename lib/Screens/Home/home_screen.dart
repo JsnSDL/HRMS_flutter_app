@@ -15,7 +15,7 @@ import 'package:hrm_employee/Screens/Outwork%20Submission/outwork_list.dart';
 import 'package:hrm_employee/Screens/Outwork%20Submission/outwork_management_screen.dart';
 import 'package:hrm_employee/Screens/Salary%20Management/salary_statement_list.dart';
 import 'package:hrm_employee/Screens/Work%20Report/Project%20managment/project_managment.dart';
-import 'package:hrm_employee/Screens/Work%20Report/daily_work_report.dart';
+import 'package:hrm_employee/Screens/Outwork%20Submission/daily_work_report.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';

@@ -229,7 +229,7 @@ class _MyAttendanceState extends State<MyAttendance> {
 
       if (response.statusCode == 200) {
         print('Check-in time posted successfully');
-        toast("You have been checked in");
+        toast("You have been clocked in");
       } else {
         print('Failed to post check-in time: ${response.statusCode}');
       }
@@ -246,7 +246,7 @@ class _MyAttendanceState extends State<MyAttendance> {
     if (!isCheckedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please check in first.'),
+          content: Text('Please clock in first.'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -280,7 +280,7 @@ class _MyAttendanceState extends State<MyAttendance> {
         print('Out time posted successfully');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('You have been checked out.'),
+            content: Text('You have been clocked out.'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -348,11 +348,10 @@ class _MyAttendanceState extends State<MyAttendance> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 20.0),
+                  const SizedBox(height: 10.0),
                       if (isCheckedIn)
                         Container(
-                          color: Colors.white,
-                          // padding: const EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.all(10.0),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -381,7 +380,7 @@ class _MyAttendanceState extends State<MyAttendance> {
                         topLeft: Radius.circular(30.0),
                         topRight: Radius.circular(30.0),
                       ),
-                      color: Colors.white,
+                    
                     ),
                   ),
                   const SizedBox(height: 20.0),
@@ -511,7 +510,7 @@ class _MyAttendanceState extends State<MyAttendance> {
                                   if (isCheckedIn) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('You are already checked in. Please check out first.'),
+                                        content: Text('You are already clocked in. Please clock out first.'),
                                         duration: Duration(seconds: 2),
                                       ),
                                     );

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Attendance_managment/attendance_manage.dart';
+import 'package:hrm_employee/Screens/Admin%20Dashboard/Dailywork_managment/dailywork_managment.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Employee_Admin/employee_directory.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Leave_managment/leave_management.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Project%20managment/project_managment.dart';
@@ -15,7 +16,7 @@ import 'package:hrm_employee/Screens/Notification%20List/notification.dart';
 import 'package:hrm_employee/Screens/Notification/notification_screen.dart';
 import 'package:hrm_employee/Screens/Outwork%20Submission/outwork_list.dart';
 import 'package:hrm_employee/Screens/Salary%20Management/salary_statement_list.dart';
-import 'package:hrm_employee/Screens/Work%20Report/daily_work_report.dart';
+import 'package:hrm_employee/Screens/Outwork%20Submission/daily_work_report.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -27,7 +28,6 @@ import '../Attendance Management/management_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -41,7 +41,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   var userName = "";
   String designation = "";
   String empCode = "";
-  String? photoUrl; 
+  String? photoUrl;
   int notificationCount = 0;
   int presentCount = 0;
   int lateCount = 0;
@@ -51,7 +51,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   DateTime endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
   List<Map<String, dynamic>> attendanceData = [];
   List<Map<String, dynamic>> filteredAttendanceData = [];
-
 
   @override
   void initState() {
@@ -74,60 +73,71 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-Future<void> fetchAttendanceData() async {
-  try {
-    final response = await http.post(
-      Uri.parse('http://192.168.1.4:3000/attendance/getAll'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${userData.token}',
-      },
-      body: json.encode({
-        'startDate': DateFormat('yyyy-MM-dd').format(startDate),
-        'endDate': DateFormat('yyyy-MM-dd').format(endDate),
-      }),
-    );
+  Future<void> fetchAttendanceData() async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.1.4:3000/attendance/getAll'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${userData.token}',
+        },
+        body: json.encode({
+          'startDate': DateFormat('yyyy-MM-dd').format(startDate),
+          'endDate': DateFormat('yyyy-MM-dd').format(endDate),
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      List<Map<String, dynamic>> attendanceData = List<Map<String, dynamic>>.from(jsonData['attendanceRecords']);
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        List<Map<String, dynamic>> attendanceData =
+            List<Map<String, dynamic>>.from(jsonData['attendanceRecords']);
 
-      int presentCount = 0;
-      int lateCount = 0;
-      int absentCount = 0;
+        int presentCount = 0;
+        int lateCount = 0;
+        int absentCount = 0;
 
-      for (var record in attendanceData) {
-        if (record['status'] == 'Present') {
-          presentCount++;
-          if (DateTime.parse(record['intime']).isAfter(DateTime.parse('${record['date']} 09:30:00'))) {
+        DateTime cutoffTime = DateTime.utc(DateTime.now().year,
+            DateTime.now().month, DateTime.now().day, 9, 31);
+
+        for (var record in attendanceData) {
+          DateTime? intime;
+
+          if (record['intime'] != null) {
+            intime = DateTime.parse(record['intime']);
+          }
+
+          if (intime == null) {
+            absentCount++;
+          } else if (intime.isBefore(cutoffTime)) {
+            presentCount++;
+          } else if (intime.isAfter(cutoffTime)) {
             lateCount++;
           }
-        } else {
-          absentCount++;
         }
+
+        if (!mounted)
+          return; // Check if the widget is still mounted before calling setState
+
+        setState(() {
+          this.attendanceData = attendanceData;
+          filteredAttendanceData = attendanceData;
+          this.presentCount = presentCount;
+          this.lateCount = lateCount;
+          this.absentCount = absentCount;
+        });
+      } else {
+        throw Exception('Failed to load attendance records');
       }
-
-      if (!mounted) return; // Check if the widget is still mounted before calling setState
-
-      setState(() {
-        this.attendanceData = attendanceData;
-        filteredAttendanceData = attendanceData;
-        this.presentCount = presentCount;
-        this.lateCount = lateCount;
-        this.absentCount = absentCount;
-      });
-    } else {
-      throw Exception('Failed to load attendance records');
+    } catch (error) {
+      if (!mounted)
+        return; // Check if the widget is still mounted before showing the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching attendance records: $error')),
+      );
     }
-  } catch (error) {
-    if (!mounted) return; // Check if the widget is still mounted before showing the error message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error fetching attendance records: $error')),
-    );
   }
-}
 
-   Future<void> fetchNotificationCount() async {
+  Future<void> fetchNotificationCount() async {
     try {
       final response = await http.post(
         Uri.parse('http://192.168.1.4:3000/notification/count'),
@@ -153,7 +163,7 @@ Future<void> fetchAttendanceData() async {
     }
   }
 
-     Future<void> fetchUserName() async {
+  Future<void> fetchUserName() async {
     try {
       final response = await http.post(
         Uri.parse('http://192.168.1.4:3000/auth/getUser'),
@@ -197,7 +207,6 @@ Future<void> fetchAttendanceData() async {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,11 +222,12 @@ Future<void> fetchAttendanceData() async {
           contentPadding: EdgeInsets.zero,
           leading: CircleAvatar(
             radius: 20.0,
-          backgroundImage:  photoUrl != null 
-        ? NetworkImage(photoUrl!)
-        : AssetImage('images/emp1.png') as ImageProvider<Object>?,),
+            backgroundImage: photoUrl != null
+                ? NetworkImage(photoUrl!)
+                : AssetImage('images/emp1.png') as ImageProvider<Object>?,
+          ),
           title: Text(
-              'Hi, $userName',
+            'Hi, $userName',
             style: kTextStyle.copyWith(color: Colors.white, fontSize: 12.0),
           ),
           // subtitle: Text(
@@ -226,7 +236,7 @@ Future<void> fetchAttendanceData() async {
           //       color: Colors.white, fontWeight: FontWeight.bold),
           // ),
         ),
-          actions: [
+        actions: [
           Stack(
             children: [
               IconButton(
@@ -301,10 +311,12 @@ Future<void> fetchAttendanceData() async {
                             height: 10.0,
                           ),
                           CircleAvatar(
-                              radius: 70.0,
-                            backgroundImage:  photoUrl != null 
-                          ? NetworkImage(photoUrl!)
-                          : AssetImage('assets/emp1.png') as ImageProvider<Object>?,),                        
+                            radius: 70.0,
+                            backgroundImage: photoUrl != null
+                                ? NetworkImage(photoUrl!)
+                                : AssetImage('assets/emp1.png')
+                                    as ImageProvider<Object>?,
+                          ),
                           const SizedBox(
                             height: 10.0,
                           ),
@@ -317,7 +329,7 @@ Future<void> fetchAttendanceData() async {
                             designation,
                             style: kTextStyle.copyWith(color: kGreyTextColor),
                           ),
-                            Text(
+                          Text(
                             empCode,
                             style: kTextStyle.copyWith(color: kGreyTextColor),
                           ),
@@ -330,15 +342,15 @@ Future<void> fetchAttendanceData() async {
                   const SizedBox(
                     height: 20.0,
                   ),
-                 Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10.0),
+                            padding: const EdgeInsets.all(20.0),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(80.0),
+                              shape: BoxShape.circle,
                               border: Border.all(color: Colors.white),
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -349,9 +361,12 @@ Future<void> fetchAttendanceData() async {
                                 ],
                               ),
                             ),
-                            child: Text(
-                              presentCount.toString(),
-                              style: kTextStyle.copyWith(color: Colors.white, fontSize: 24),
+                            child: Center(
+                              child: Text(
+                                presentCount.toString(),
+                                style: kTextStyle.copyWith(
+                                    color: Colors.white, fontSize: 24),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 2.0),
@@ -364,9 +379,9 @@ Future<void> fetchAttendanceData() async {
                       Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10.0),
+                            padding: const EdgeInsets.all(20.0),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(80.0),
+                              shape: BoxShape.circle,
                               border: Border.all(color: Colors.white),
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -377,9 +392,12 @@ Future<void> fetchAttendanceData() async {
                                 ],
                               ),
                             ),
-                            child: Text(
-                              lateCount.toString(),
-                              style: kTextStyle.copyWith(color: Colors.white, fontSize: 24),
+                            child: Center(
+                              child: Text(
+                                lateCount.toString(),
+                                style: kTextStyle.copyWith(
+                                    color: Colors.white, fontSize: 24),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 2.0),
@@ -392,9 +410,9 @@ Future<void> fetchAttendanceData() async {
                       Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10.0),
+                            padding: const EdgeInsets.all(20.0),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(80.0),
+                              shape: BoxShape.circle,
                               border: Border.all(color: Colors.white),
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -405,9 +423,12 @@ Future<void> fetchAttendanceData() async {
                                 ],
                               ),
                             ),
-                            child: Text(
-                              absentCount.toString(),
-                              style: kTextStyle.copyWith(color: Colors.white, fontSize: 24),
+                            child: Center(
+                              child: Text(
+                                absentCount.toString(),
+                                style: kTextStyle.copyWith(
+                                    color: Colors.white, fontSize: 24),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 2.0),
@@ -792,11 +813,11 @@ Future<void> fetchAttendanceData() async {
                         color: Colors.white,
                       ),
                       child: ListTile(
-                        onTap: () => const OutworkList().launch(context),
+                        onTap: () => const DailyWorkManagementScreen().launch(context),
                         leading: const Image(
                             image: AssetImage('images/outworksubmission.png')),
                         title: Text(
-                          'Employee Recognition and Rewards',
+                          'Daily Task Report',
                           maxLines: 2,
                           style: kTextStyle.copyWith(
                               color: kTitleColor, fontWeight: FontWeight.bold),

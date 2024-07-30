@@ -1,6 +1,7 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
+import 'package:hrm_employee/GlobalComponents/button_global.dart';
 import 'package:nb_utils/nb_utils.dart';
 
 import '../../../constant.dart';
@@ -176,23 +177,16 @@ class _EmployeeDirectoryState extends State<EmployeeDirectory> {
                   ),
                 ),
                 const SizedBox(height: 24),
-               ElevatedButton(
+               ButtonGlobal(
+                  buttontext: 'Back',
+                  buttonDecoration: kButtonDecoration.copyWith(
+                      color: const Color.fromARGB(255, 84, 27, 94),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(20.0),
+                      )),
                   onPressed: () {
-                    // Implement save functionality here
                     Navigator.of(context).pop();
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:const Color.fromARGB(255, 84, 27, 94),
-                    padding: EdgeInsets.symmetric(horizontal: 104.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ), 
-                  ),
-                  child: const Text(
-                    'Back',
-                    style: TextStyle(
-                        fontSize: 16.0, color: Colors.white), // Text style
-                  ),
                 ),
               ],
             ),
@@ -271,6 +265,15 @@ class _EmployeeDirectoryState extends State<EmployeeDirectory> {
                           onTap: () {
                             fetchUserData(users[index]['empcode']);
                           },
+                          trailing: IconButton(
+                              icon: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 15.0,
+                              ),
+                              onPressed: () {
+                            fetchUserData(users[index]['empcode']);
+                              },
+                            ),
                         ),
                       ),
                       const SizedBox(height: 20.0),

@@ -10,6 +10,7 @@ router.post('/token',isAuth.token)
 router.post('/login', authController.login);
 router.post('/getUser', isAuth.token, authController.getUser);
 router.post('/getAllUser', isAuth.token, authController.getAllUser);
+router.post('/getAllUserTask', isAuth.token, authController.getAllUserTask);
 
 
 module.exports = router;

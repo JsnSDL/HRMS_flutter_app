@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hrm_employee/GlobalComponents/button_global.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Project%20managment/project_managment.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Project%20managment/project_progress.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -220,37 +221,30 @@ Widget build(BuildContext context) {
                 },
               ),
               const SizedBox(height: 20.0),
-              ElevatedButton(
-                onPressed: () {
-                  String taskName = taskNameController.text;
-                  String taskDescription = taskDescriptionController.text;
-                  if (taskName.isNotEmpty &&
-                      taskDescription.isNotEmpty &&
-                      deadline != null &&
-                      selectedTeamMembers.isNotEmpty) {
-                    applyTask();
-                  } else {
-                    // Show a validation error message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Please fill in all fields'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 84, 27, 94),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+             ButtonGlobal(
+                  onPressed: () {
+                    String taskName = taskNameController.text;
+                    String taskDescription = taskDescriptionController.text;
+                    if (taskName.isNotEmpty &&
+                        taskDescription.isNotEmpty &&
+                        deadline != null &&
+                        selectedTeamMembers.isNotEmpty) {
+                      applyTask();
+                    } else {
+                      // Show a validation error message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill in all fields'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  buttontext: 'Assign Task',
+                  buttonDecoration: kButtonDecoration.copyWith(
+                      color: const Color.fromARGB(255, 84, 27, 94),
+                      borderRadius: BorderRadius.circular(20.0)),
                 ),
-                child: const Text(
-                  'Assign Task',
-                  style: TextStyle(fontSize: 18.0, color: Colors.white),
-                ),
-              ),
             ],
           ),
         ),

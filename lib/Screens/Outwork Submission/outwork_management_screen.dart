@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:hrm_employee/Screens/Outwork%20Submission/daily_work_report.dart';
 import 'package:hrm_employee/Screens/Outwork%20Submission/outwork_list.dart';
 import 'package:hrm_employee/Screens/Outwork%20Submission/submit_outwork.dart';
 import 'package:nb_utils/nb_utils.dart';
@@ -115,6 +116,47 @@ class _OutManagementScreenState extends State<OutManagementScreen> {
                           title: Text(
                             // 'Leave Recommendation',
                             'Apply Task ',
+                            maxLines: 2,
+                            style: kTextStyle.copyWith(
+                                color: kTitleColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                        ),
+                        
+                      ),
+                    ),
+                  ),
+                    const SizedBox(
+                    height: 20.0,
+                  ),
+                  Material(
+                    elevation: 2.0,
+                    child: GestureDetector(
+                      onTap: () {
+                        // const DailyWorkReport().launch(context);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const DailyWorkReport()));
+                      },
+                      child: Container(
+                        width: context.width(),
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              color: Color(0xFFFD73B0),
+                              width: 3.0,
+                            ),
+                          ),
+                          color: Colors.white,
+                        ),
+                        child: ListTile(
+                          leading: const Image(
+                              image: AssetImage('images/leavemanagement.png')),
+                          title: Text(
+                            'Daily Work Report',
                             maxLines: 2,
                             style: kTextStyle.copyWith(
                                 color: kTitleColor,

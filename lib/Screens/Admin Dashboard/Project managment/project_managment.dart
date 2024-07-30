@@ -74,7 +74,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                         leading: const Image(
                             image: AssetImage('images/leaveapplication.png')),
                         title: Text(
-                          'Project progress',
+                          'Project Progress',
                           maxLines: 2,
                           style: kTextStyle.copyWith(
                               color: kTitleColor, fontWeight: FontWeight.bold),

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:flutter/material.dart';
+import 'package:hrm_employee/GlobalComponents/button_global.dart';
 import 'package:hrm_employee/Screens/Admin%20Dashboard/Project%20managment/project_progress.dart';
+import 'package:hrm_employee/constant.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -339,20 +341,14 @@ void assignProject() async {
                       ],
                     ),
                     const SizedBox(height: 20.0),
-                    SizedBox(
+                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: ButtonGlobal(
                         onPressed: assignProject,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 84, 27, 94),
-                          padding: const EdgeInsets.symmetric(vertical: 15.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                        ),
-                        child: const Text('Assign Project',
-                            style: TextStyle(color: Colors.white)),
+                        buttontext: 'Assign Project',
+                        buttonDecoration: kButtonDecoration.copyWith(
+                            color: const Color.fromARGB(255, 84, 27, 94),
+                            borderRadius: BorderRadius.circular(20.0)),
                       ),
                     ),
                   ],

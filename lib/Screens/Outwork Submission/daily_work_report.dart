@@ -1,22 +1,22 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // Import DateFormat for date and time formatting
 
 import '../../constant.dart';
-import 'edit_task.dart';
-import 'task_detail_page.dart';
 import 'package:provider/provider.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
+import 'package:hrm_employee/Screens/Outwork%20Submission/edit_task.dart';
+import 'package:hrm_employee/Screens/Outwork%20Submission/task_detail_page.dart';
 
-class OutworkList extends StatefulWidget {
-  const OutworkList({Key? key}) : super(key: key);
+class DailyWorkReport extends StatefulWidget {
+  const DailyWorkReport({Key? key}) : super(key: key);
 
   @override
-  _OutworkListState createState() => _OutworkListState();
+  _DailyWorkReportState createState() => _DailyWorkReportState();
 }
 
-class _OutworkListState extends State<OutworkList>
+class _DailyWorkReportState extends State<DailyWorkReport>
     with SingleTickerProviderStateMixin {
   late UserData userData;
   late TabController _tabController;
@@ -60,14 +60,23 @@ class _OutworkListState extends State<OutworkList>
             'id': record['ID'] ?? 0,
             'project': record['project'],
             'task_name': record['task_name'],
+            'dept': record['dept'],
             'end_date': record['end_date'],
             'descr': record['descr'],
             'status': statusText,
           };
         }).toList();
 
+        // Filter tasks for today's date
+        DateTime today = DateTime.now();
+        String formattedDate = DateFormat('yyyy-MM-dd').format(today);
+        List<Map<String, dynamic>> filteredData = data.where((task) {
+          String taskEndDate = task['end_date'].toString().split('T')[0];
+          return taskEndDate == formattedDate;
+        }).toList();
+
         setState(() {
-          taskData = data;
+          taskData = filteredData;
         });
       } else {
         print('Failed to fetch tasks: ${response.statusCode}');
@@ -88,8 +97,8 @@ class _OutworkListState extends State<OutworkList>
     return Scaffold(
       backgroundColor: kMainColor,
       appBar: AppBar(
-        title:
-            const Text('Outwork List', style: TextStyle(color: Colors.white)),
+        title: const Text('Daily work List',
+            style: TextStyle(color: Colors.white)),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: false,
@@ -143,6 +152,8 @@ class _OutworkListState extends State<OutworkList>
       filteredTasks =
           taskData.where((task) => task['status'] == status).toList();
     }
+
+    filteredTasks = filteredTasks.reversed.toList();
     if (filteredTasks.isEmpty) {
       return const Center(
         child: Text(

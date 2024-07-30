@@ -36,7 +36,7 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
     1: 'Completed',
   };
 
-  static const Map<int, String> departmentId = {
+  static const Map<int, String> projectId = {
     1: 'HRMS Old',
     2: 'HRMS New',
     3: 'UI Development',
@@ -44,7 +44,7 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
   };
 
   String status = 'In Progress';
-  String department = 'HRMS Old';
+  String project = 'HRMS Old';
 
   DropdownButton<String> getStatusDropdown() {
     List<DropdownMenuItem<String>> dropDownItems = [];
@@ -69,7 +69,7 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
   void applyTask() async {
     int statusInt = statusId.keys
         .firstWhere((key) => statusId[key] == status, orElse: () => 2);
-    String departmentVal = department;
+    String projectVal = project;
 
     DateTime? endDate;
     try {
@@ -89,9 +89,8 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
     }
 
     Map<String, dynamic> taskValues = {
-      'project': projectController.text,
+      'project': projectVal,
       'task_name': nameController.text,
-      'dept': departmentVal,
       'create_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
       'end_date': endDate.toIso8601String(),
       'descr': descriptionController.text,
@@ -181,23 +180,32 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Project Name',
+                          'Project',
                           style: TextStyle(
                               fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8.0),
-                        TextFormField(
-                          controller: projectController,
-                          decoration: const InputDecoration(
-                              // labelText: 'Project Name',
-                              hintText: 'Enter Project Name',
-                               hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w400),
-                              border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20.0)),
-                              )),
+                       Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color.fromRGBO(192, 190, 190, 1),
+                                  width: 1.5),
+                              borderRadius: const BorderRadius.all(
+                                  Radius.circular(15.0))),
+                          child: CustomDropdown(
+                            items: projectId.values.toList(),
+                            hintText: 'Select Project',
+                            // initialItem: department,
+                            onChanged: (newValue) {
+                              setState(() {
+                                project = newValue
+                                    .toString(); // Update department state
+                              });
+                            },
+                            decoration: CustomDropdownDecoration(
+                              expandedBorderRadius: BorderRadius.circular(15.0),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -226,40 +234,6 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
                       ],
                     ),
                     const SizedBox(height: 20.0),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Select Department',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: const Color.fromRGBO(192, 190, 190, 1),
-                                  width: 1.5),
-                              borderRadius: const BorderRadius.all(
-                                  Radius.circular(15.0))),
-                          child: CustomDropdown(
-                            items: departmentId.values.toList(),
-                            hintText: 'Select Department',
-                            // initialItem: department,
-                            onChanged: (newValue) {
-                              setState(() {
-                                department = newValue
-                                    .toString(); // Update department state
-                              });
-                            },
-                            decoration: CustomDropdownDecoration(
-                              expandedBorderRadius: BorderRadius.circular(15.0),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -324,6 +298,7 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
                               suffixIcon: Icon(Icons.date_range_rounded,
                                   color: kGreyTextColor),
                               labelText: 'Due Date',
+                              labelStyle:TextStyle(fontWeight: FontWeight.bold),
                               hintText: 'Select Date',
                                hintStyle: TextStyle(
                                   color: Colors.grey,

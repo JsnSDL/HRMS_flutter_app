@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hrm_employee/GlobalComponents/button_global.dart';
 import 'package:hrm_employee/constant.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -212,17 +213,12 @@ class _EditProjectTaskScreenState extends State<EditProjectTaskScreen> {
               const SizedBox(height: 20.0),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ButtonGlobal(
                   onPressed: _updateTask,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kMainColor,
-                    padding: const EdgeInsets.symmetric(vertical: 15.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                  ),
-                  child: const Text('Update Task',
-                      style: TextStyle(color: Colors.white)),
+                  buttontext: 'Update Task',
+                  buttonDecoration: kButtonDecoration.copyWith(
+                      color: kMainColor,
+                      borderRadius: BorderRadius.circular(20.0)),
                 ),
               ),
             ],
