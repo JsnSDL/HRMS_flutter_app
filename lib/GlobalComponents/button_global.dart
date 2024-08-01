@@ -18,12 +18,12 @@ class ButtonGlobal extends StatelessWidget {
       onPressed: onPressed,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+        padding: const EdgeInsets.only(top: 13.0, bottom: 13.0),
         decoration: buttonDecoration,
         child: Center(
           child: Text(
             buttontext,
-            style: kTextStyle.copyWith(fontSize: 20.0, color: Colors.white, fontWeight: FontWeight.bold),
+            style: kTextStyle.copyWith(fontSize: 18.0, color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
       ),
