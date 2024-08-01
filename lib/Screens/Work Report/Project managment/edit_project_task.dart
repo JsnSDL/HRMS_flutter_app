@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
+import 'package:nb_utils/nb_utils.dart';
+
 
 class EditProjectTaskScreen extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -67,6 +69,7 @@ class _EditProjectTaskScreenState extends State<EditProjectTaskScreen> {
     try {
       final response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {
+        toast('Task Edited Successfully');
         Navigator.pop(context, {
           'task_name': taskNameController.text,
           'description': taskDescriptionController.text,

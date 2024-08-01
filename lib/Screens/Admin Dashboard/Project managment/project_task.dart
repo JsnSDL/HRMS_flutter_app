@@ -10,6 +10,8 @@ import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:nb_utils/nb_utils.dart';
+
 
 class ProjectTaskScreen extends StatefulWidget {
   final Project project;
@@ -71,6 +73,7 @@ void applyTask() async {
     );
 
     if (response.statusCode == 200) {
+      toast('New Task Added Successfully');
       print('Task posted successfully');
       Navigator.push(
           context,

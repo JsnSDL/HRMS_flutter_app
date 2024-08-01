@@ -44,7 +44,7 @@ class _LeaveApplicationState extends State<LeaveApplication> {
   Future<void> fetchLeaveData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/leave/get'),
+        Uri.parse('http://192.168.1.5:3000/leave/get'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -82,8 +82,7 @@ class _LeaveApplicationState extends State<LeaveApplication> {
               dayType: dayType,
               reason: record['reason'] ?? '',
               dateRange:
-                  '${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(record['fromdate']))} to ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(record['todate']))}' ??
-                      '',
+                  '${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(record['fromdate']))} to ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(record['todate']))}',
               applyDate: record['createddate'] ?? '',
               fromDate: DateTime.parse(record['fromdate']),
               toDate: DateTime.parse(record['todate']),
@@ -320,20 +319,28 @@ class LeaveData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd, MMM yyyy');
-      final timeFormat = DateFormat('HH:mm');
-
+       String formatDateTime(DateTime dateTime) {
+    // Check if the time part is 00:00:00
+    if (dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0) {
+      // Format only the date
+      return DateFormat('yyyy-MM-dd').format(dateTime);
+    } else {
+      // Format date and time
+      return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    }
+  }
 
     final dateRanges = dateRange.split(' to ');
     final fromDate = DateTime.parse(dateRanges[0]);
     final toDate = DateTime.parse(dateRanges[1]);
 
     String formattedDateRange =
-        '${dateFormat.format(fromDate)} ${timeFormat.format(fromDate)} to ${dateFormat.format(toDate)} ${timeFormat.format(toDate)}';
+        '${formatDateTime(fromDate)} to ${formatDateTime(toDate)}';
 
     final applyDateFormat = DateFormat('dd, MMM yyyy');
     final formattedApplyDate =
         applyDateFormat.format(DateTime.parse(applyDate));
+
 
     Color borderColor = getStatusColor(status);
     return Material(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
+import 'package:nb_utils/nb_utils.dart';
+
+
+
 
 class Employee {
   final String empcode;
@@ -118,6 +123,7 @@ void assignProject() async {
     );
 
     if (response.statusCode == 201) {
+      toast('New Project Created!');
       Navigator.push(
         context,
         MaterialPageRoute(

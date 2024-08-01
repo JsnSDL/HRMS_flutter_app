@@ -61,17 +61,14 @@ class _LeaveManagementPageState extends State<LeaveManagementPage> {
               leaveType = 'Unknown';
             }
 
-            final fromDate = record['fromdate'] != null
-                ? DateFormat('yyyy-MM-dd HH:mm')
-                    .format(DateTime.parse(record['fromdate']))
+                 final fromDate = record['fromdate'] != null
+                ? formatDateTime(DateTime.parse(record['fromdate']))
                 : 'Unknown';
             final toDate = record['todate'] != null
-                ? DateFormat('yyyy-MM-dd HH:mm')
-                    .format(DateTime.parse(record['todate']))
+                ? formatDateTime(DateTime.parse(record['todate']))
                 : 'Unknown';
             final applyDate = record['createddate'] != null
-                ? DateFormat('yyyy-MM-dd HH:mm')
-                    .format(DateTime.parse(record['createddate']))
+                ? formatDateTime(DateTime.parse(record['createddate']))
                 : 'Unknown';
             final status = record['approvel_status'] ?? 'Unknown';
 
@@ -90,6 +87,17 @@ class _LeaveManagementPageState extends State<LeaveManagementPage> {
       }
     } catch (error) {
       print('Error fetching leave records: $error');
+    }
+  }
+
+  String formatDateTime(DateTime dateTime) {
+    // Check if the time part is 00:00:00
+    if (dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0) {
+      // Format only the date
+      return DateFormat('yyyy-MM-dd').format(dateTime);
+    } else {
+      // Format date and time
+      return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
     }
   }
 

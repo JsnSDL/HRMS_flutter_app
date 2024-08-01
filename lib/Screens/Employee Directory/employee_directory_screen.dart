@@ -11,6 +11,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
 
+const baseUrl = 'http://192.168.1.4:3000/images/';
+
 
 class EmployeeDirectory extends StatefulWidget {
   const EmployeeDirectory({Key? key}) : super(key: key);
@@ -43,11 +45,15 @@ Future<void> fetchAllUsers() async {
     );
 
     if (response.statusCode == 200) {
+      List<dynamic> jsonResponse = json.decode(response.body);
       setState(() {
-        users = List<Map<String, String>>.from((json.decode(response.body) as List).map((user) => {
-          'empName': user['emp_fname'].toString(),
-          'designation': user['designationname'].toString(),
-        }));
+        users = jsonResponse.map((user) {
+          return {
+            'empName': user['emp_fname']?.toString() ?? '',
+            'designation': user['designationname']?.toString() ?? '',
+            'photo': user['photo']?.toString() ?? '',
+          };
+        }).toList();
       });
     } else {
       print('Failed to load users data with status code: ${response.statusCode}');
@@ -58,7 +64,6 @@ Future<void> fetchAllUsers() async {
     print('Error fetching users: $error');
   }
 }
-
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +107,17 @@ Future<void> fetchAllUsers() async {
                           border: Border.all(color: kGreyTextColor.withOpacity(0.5)),
                         ),
                         child: ListTile(
-                          leading: Image.asset('images/emp1.png'),
+                         leading: users[index]['photo'] != null && users[index]['photo']!.isNotEmpty
+                          ? Image.network(
+                              baseUrl + (users[index]['photo'] ?? 'default_image.png'),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.error);
+                              },
+                            )
+                          : Image.asset('images/emp1.png'),
                           title: Text(
                             users[index]['empName']!,
                             style: kTextStyle,
