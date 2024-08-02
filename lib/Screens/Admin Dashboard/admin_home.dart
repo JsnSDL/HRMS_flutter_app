@@ -76,7 +76,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> fetchAttendanceData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/attendance/getAll'),
+        Uri.parse('http://192.168.1.5:3000/attendance/getAll'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -140,7 +140,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> fetchNotificationCount() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/notification/count'),
+        Uri.parse('http://192.168.1.5:3000/notification/count'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -166,7 +166,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> fetchUserName() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/auth/getUser'),
+        Uri.parse('http://192.168.1.5:3000/auth/getUser'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

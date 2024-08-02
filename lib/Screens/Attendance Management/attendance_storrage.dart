@@ -58,7 +58,7 @@ class _AttendanceStorageState extends State<AttendanceStorage> {
   Future<List<Map<String, dynamic>>> fetchAttendanceData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/attendance/get'),
+        Uri.parse('http://192.168.1.5:3000/attendance/get'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

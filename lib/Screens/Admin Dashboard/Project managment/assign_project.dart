@@ -61,7 +61,7 @@ class _ProjectAssignmentScreenState extends State<ProjectAssignmentScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/auth/getAllUser'),
+        Uri.parse('http://192.168.1.5:3000/auth/getAllUser'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -110,7 +110,7 @@ void assignProject() async {
 
   final jsonData = jsonEncode(projectValues);
 
-  const url = 'http://192.168.1.4:3000/task/project';
+  const url = 'http://192.168.1.5:3000/task/project';
 
   try {
     final response = await http.post(

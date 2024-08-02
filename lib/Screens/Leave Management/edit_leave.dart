@@ -165,7 +165,7 @@ class _EditLeavePageState extends State<EditLeavePage> {
 
 
   Future<Map<String, dynamic>> checkLeaveExists(String fromdate, String createddate) async {
-    String url = 'http://192.168.1.4:3000/leave/check';
+    String url = 'http://192.168.1.5:3000/leave/check';
 
     Map<String, dynamic> requestBody = {
       'company_id': '2',
@@ -209,7 +209,7 @@ class _EditLeavePageState extends State<EditLeavePage> {
   }
 
   void checkAndUpdateRemainingLeaves() async {
-    String url = 'http://192.168.1.4:3000/leave/remain';
+    String url = 'http://192.168.1.5:3000/leave/remain';
 
     Map<String, dynamic> requestBody = {
       'company_id': '2',
@@ -338,7 +338,7 @@ class _EditLeavePageState extends State<EditLeavePage> {
 
   String jsonData = jsonEncode(data);
 
-  String url = 'http://192.168.1.4:3000/leave/edit';
+  String url = 'http://192.168.1.5:3000/leave/edit';
 
   try {
     final response = await http.post(

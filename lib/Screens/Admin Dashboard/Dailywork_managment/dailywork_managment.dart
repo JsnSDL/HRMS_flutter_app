@@ -34,7 +34,7 @@ class _DailyWorkManagementScreenState extends State<DailyWorkManagementScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/auth/getAllUserTask'),
+        Uri.parse('http://192.168.1.5:3000/auth/getAllUserTask'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

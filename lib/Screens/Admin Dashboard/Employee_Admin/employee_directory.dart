@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
 
-const baseUrl = 'http://192.168.1.4:3000/images/';
+const baseUrl = 'http://192.168.1.5:3000/images/';
 
 class EmployeeDirectory extends StatefulWidget {
   const EmployeeDirectory({Key? key}) : super(key: key);
@@ -36,7 +36,7 @@ class _EmployeeDirectoryState extends State<EmployeeDirectory> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/auth/getAllUser'),
+        Uri.parse('http://192.168.1.5:3000/auth/getAllUser'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -61,7 +61,7 @@ class _EmployeeDirectoryState extends State<EmployeeDirectory> {
  Future<void> fetchUserData(String empCode) async {
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.1.4:3000/auth/getUser'),
+      Uri.parse('http://192.168.1.5:3000/auth/getUser'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${userData.token}',

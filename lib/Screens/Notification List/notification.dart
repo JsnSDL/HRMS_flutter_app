@@ -37,7 +37,7 @@ class _NotificationpageState extends State<Notificationpage> {
   Future<void> fetchBirthday() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/notification/getData'),
+        Uri.parse('http://192.168.1.5:3000/notification/getData'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

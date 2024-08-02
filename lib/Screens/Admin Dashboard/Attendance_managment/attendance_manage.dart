@@ -28,7 +28,7 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
   Future<void> fetchAttendanceData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/attendance/getAll'),
+        Uri.parse('http://192.168.1.5:3000/attendance/getAll'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

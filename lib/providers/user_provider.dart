@@ -64,7 +64,7 @@ class UserData extends ChangeNotifier {
     if (_token == null) return;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.4:3000/auth/token'),
+      Uri.parse('http://192.168.1.5:3000/auth/token'),
       headers: {
         'Authorization': 'Bearer $_token',
       },

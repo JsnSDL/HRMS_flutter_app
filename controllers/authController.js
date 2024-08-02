@@ -39,7 +39,7 @@ exports.login = (req, res) => {
     });
 };
 
-const baseUrl = 'http://192.168.1.4:3000/images/';
+const baseUrl = 'http://192.168.1.5:3000/images/';
 exports.getUser = (req, res) => {
   const { empcode } = req.body;
 

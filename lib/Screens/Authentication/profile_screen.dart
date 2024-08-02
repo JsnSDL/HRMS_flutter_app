@@ -44,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> fetchUserData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/auth/getUser'),
+        Uri.parse('http://192.168.1.5:3000/auth/getUser'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

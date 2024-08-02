@@ -106,7 +106,7 @@ class _LeaveApplyState extends State<LeaveApply> {
 
 
   Future<Map<String, dynamic>> checkLeaveExists(String fromdate, String createddate) async {
-    String url = 'http://192.168.1.4:3000/leave/check';
+    String url = 'http://192.168.1.5:3000/leave/check';
 
     Map<String, dynamic> requestBody = {
       'company_id': '2',
@@ -151,7 +151,7 @@ class _LeaveApplyState extends State<LeaveApply> {
 
  void checkAndUpdateRemainingLeaves() async {
   print('checkAndUpdateRemainingLeaves called');
-  String url = 'http://192.168.1.4:3000/leave/remain';
+  String url = 'http://192.168.1.5:3000/leave/remain';
 
   Map<String, dynamic> requestBody = {
     'company_id': '2',
@@ -291,7 +291,7 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
 
   String jsonData = jsonEncode(leaveValues);
 
-  String url = 'http://192.168.1.4:3000/leave/apply';
+  String url = 'http://192.168.1.5:3000/leave/apply';
 
   try {
     final response = await http.post(

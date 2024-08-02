@@ -37,7 +37,7 @@ class _LeaveManagementPageState extends State<LeaveManagementPage> {
   Future<void> fetchLeaveData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/leave/approveGet'),
+        Uri.parse('http://192.168.1.5:3000/leave/approveGet'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -152,7 +152,7 @@ class _LeaveManagementPageState extends State<LeaveManagementPage> {
       int id, String empcode, bool approve) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/leave/approve'),
+        Uri.parse('http://192.168.1.5:3000/leave/approve'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

@@ -148,7 +148,7 @@ class _MyAttendanceState extends State<MyAttendance> {
       String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.4:3000/attendance/get'),
+        Uri.parse('http://192.168.1.5:3000/attendance/get'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -215,7 +215,7 @@ class _MyAttendanceState extends State<MyAttendance> {
 
     String jsonData = jsonEncode(attendanceData);
 
-    String url = 'http://192.168.1.4:3000/attendance/time';
+    String url = 'http://192.168.1.5:3000/attendance/time';
 
     try {
       final response = await http.post(
@@ -264,7 +264,7 @@ class _MyAttendanceState extends State<MyAttendance> {
 
     String jsonData = jsonEncode(attendanceData);
 
-    String url = 'http://192.168.1.4:3000/attendance/update';
+    String url = 'http://192.168.1.5:3000/attendance/update';
 
     try {
       final response = await http.post(
