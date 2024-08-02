@@ -6,7 +6,6 @@ class DailyTaskDetailPage extends StatefulWidget {
   final int id;
   final String taskName;
   final String project;
-  final String dept;
   final String endDate;
   final String description;
   final String status;
@@ -15,7 +14,6 @@ class DailyTaskDetailPage extends StatefulWidget {
     required this.id,
     required this.taskName,
     required this.project,
-    required this.dept,
     required this.endDate,
     required this.description,
     required this.status,
@@ -83,7 +81,6 @@ class _DailyTaskDetailPageState extends State<DailyTaskDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildDetailColumn('Project', widget.project),
-                      _buildDetailColumn('Department', widget.dept),
                       _buildDetailColumn('End Date', date),
                       _buildDetailColumn('End Time', time12),
                       _buildDetailColumn('Description', widget.description),

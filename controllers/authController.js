@@ -122,7 +122,6 @@ exports.getAllUserTask = (req, res) => {
         console.error('Error executing query: ', err);
         return res.status(500).json({ message: 'Internal server error' });
       }
-      console.log(results.recordset);
       return res.status(200).json(results.recordset);
       
     });

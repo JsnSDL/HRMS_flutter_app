@@ -62,7 +62,6 @@ class _DailyWorkReportState extends State<DailyTask>
             'id': record['ID'] ?? 0,
             'project': record['project'],
             'task_name': record['task_name'],
-            'dept': record['dept'],
             'end_date': record['end_date'],
             'descr': record['descr'],
             'status': statusText,
@@ -173,7 +172,6 @@ class _DailyWorkReportState extends State<DailyTask>
           id: task['id'],
           taskName: task['task_name'],
           project: task['project'],
-          dept: task['dept'],
           endDate: task['end_date'],
           description: task['descr'],
           status: task['status'],
@@ -185,7 +183,6 @@ class _DailyWorkReportState extends State<DailyTask>
                   id: task['id'],
                   taskName: task['task_name'],
                   project: task['project'],
-                  dept: task['dept'],
                   endDate: task['end_date'],
                   description: task['descr'],
                   status: task['status'],
@@ -203,7 +200,6 @@ class CustomTaskCard extends StatelessWidget {
   final int id;
   final String taskName;
   final String project;
-  final String dept;
   final String endDate;
   final String description;
   final String status;
@@ -214,7 +210,6 @@ class CustomTaskCard extends StatelessWidget {
     required this.id,
     required this.taskName,
     required this.project,
-    required this.dept,
     required this.endDate,
     required this.description,
     required this.status,
@@ -281,7 +276,6 @@ class CustomTaskCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Project: $project'),
-                Text('Department: $dept'),
                 Text('Date: $date'), // Displaying only date
                 if (time12.isNotEmpty)
                   Text(
