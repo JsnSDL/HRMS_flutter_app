@@ -86,15 +86,17 @@ class _TasksTabState extends State<TasksTab> {
                   ),
                 ),
                 const SizedBox(height: 20.0),
-               ...taskData.map((task) => _buildTaskCard(
-                      context,
-                      id: task['id'],
-                      title: task['task'],
-                      description: task['description'],
-                      completed: task['status'] == 'Completed',
-                      assignee: task['assignee'],
-                      deadline: _formatDate(task['deadline']), 
-                    )).toList(),
+                ...taskData
+                    .map((task) => _buildTaskCard(
+                          context,
+                          id: task['id'],
+                          title: task['task'],
+                          description: task['description'],
+                          completed: task['status'] == 'Completed',
+                          assignee: task['assignee'],
+                          deadline: _formatDate(task['deadline']),
+                        ))
+                    .toList(),
               ],
             ),
           ),
@@ -103,127 +105,126 @@ class _TasksTabState extends State<TasksTab> {
     );
   }
 
-    String _formatDate(String dateTimeString) {
+  String _formatDate(String dateTimeString) {
     try {
       final dateTime = DateTime.parse(dateTimeString);
       final DateFormat formatter = DateFormat('yyyy-MM-dd');
       return formatter.format(dateTime);
     } catch (e) {
-      return dateTimeString;  
+      return dateTimeString;
     }
   }
 
-Widget _buildTaskCard(
-  BuildContext context, {
-  required int id,
-  required String title,
-  required String description,
-  required bool completed,
-  required String assignee,
-  required String deadline,
-}) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(8.0),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.5),
-          spreadRadius: 2,
-          blurRadius: 5,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    margin: const EdgeInsets.only(bottom: 16.0),
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
+  Widget _buildTaskCard(
+    BuildContext context, {
+    required int id,
+    required String title,
+    required String description,
+    required bool completed,
+    required String assignee,
+    required String deadline,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      margin: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              IconButton(
+                onPressed: () async {
+                  final updatedTask = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProjectTaskScreen(
+                        task: {
+                          'id': id,
+                          'project': widget.project.name,
+                          'task_name': title,
+                          'description': description,
+                          'completed': completed,
+                          'assignee': assignee,
+                          'deadline': deadline,
+                        },
+                      ),
+                    ),
+                  );
+
+                  if (updatedTask != null) {
+                    fetchData();
+                  }
+                },
+                icon: const Icon(
+                  Icons.edit,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              Expanded(
+                child: Text(
                   title,
                   style: const TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.blueAccent,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 5.0),
-                IconButton(
-                  onPressed: () async {
-                    final updatedTask = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProjectTaskScreen(
-                          task: {
-                            'id': id,
-                            'project':widget.project.name,
-                            'task_name': title,
-                            'description': description,
-                            'completed': completed,
-                            'assignee': assignee,
-                            'deadline': deadline,
-                          },
-                        ),
-                      ),
-                    );
-
-                    if (updatedTask != null) {
-                      fetchData();
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.edit,
-                    color: Colors.blueAccent,
+              ),
+              const SizedBox(width: 5.0),
+              if (completed)
+                const Chip(
+                  label: Text(
+                    'Completed',
+                    style: TextStyle(color: Colors.white),
                   ),
+                  backgroundColor: Colors.green,
                 ),
-              ],
-            ),
-            if (completed)
-              const Chip(
-                label: Text(
-                  'Completed',
-                  style: TextStyle(color: Colors.white),
+              if (!completed)
+                const Chip(
+                  label: Text(
+                    'Not Completed',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
                 ),
-                backgroundColor: Colors.green,
-              ),
-            if (!completed)
-              const Chip(
-                label: Text(
-                  'Not Completed',
-                  style: TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
-          ],
-        ),
-        const SizedBox(height: 12.0),
-        Text(
-          description,
-          style: TextStyle(color: Colors.grey[800]),
-        ),
-        const SizedBox(height: 12.0),
-        Text(
-          'Deadline: $deadline',
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 12.0),
-        const Divider(),
-        ListTile(
-          leading: const Icon(Icons.people, color: Colors.blueAccent),
-          title: const Text(
-            'Assignee:',
-            style: TextStyle(color: Colors.black87),
+            ],
           ),
-          subtitle: Text(assignee),
-        ),
-      ],
-    ),
-  );
-}
+          const SizedBox(height: 12.0),
+          Text(
+            description,
+            style: TextStyle(color: Colors.grey[800]),
+          ),
+          const SizedBox(height: 12.0),
+          Text(
+            'Deadline: $deadline',
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 12.0),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.people, color: Colors.blueAccent),
+            title: const Text(
+              'Assignee:',
+              style: TextStyle(color: Colors.black87),
+            ),
+            subtitle: Text(assignee),
+          ),
+        ],
+      ),
+    );
+  }
 }
