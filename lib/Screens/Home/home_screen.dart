@@ -134,11 +134,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-
+  Future<void> _refreshData() async {
+    await fetchUserName();
+    await fetchNotificationCount();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: kMainColor,
       appBar: AppBar(
@@ -862,6 +867,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+     ),
     );
   }
 }
