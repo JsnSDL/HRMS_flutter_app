@@ -118,7 +118,10 @@ class _LeaveManagementPageState extends State<LeaveManagementPage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Action'),
+          backgroundColor: Colors.white,
+          title:const Text('Confirm Action',  
+          style: TextStyle(fontWeight: FontWeight.bold),
+),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -355,36 +358,46 @@ class LeaveApplicationCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: () {
                     onUpdateLeaveStatus(leaveApplication.id,
                         leaveApplication.empcode, true);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 66, 179, 70),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.green, // Text color
+                    side: const BorderSide(
+                        color: Colors.green,
+                        width: 2), // Border color and width
+                    backgroundColor: Colors.white, // Background color
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10), // Padding
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10), // Button shape
                     ),
                   ),
                   child: const Text(
                     'Approve',
-                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: () {
                     onUpdateLeaveStatus(leaveApplication.id,
                         leaveApplication.empcode, false);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 249, 90, 79),
+                    style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent, // Text color
+                    side: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2), // Border color and width
+                    backgroundColor: Colors.white, // Background color
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10), // Padding
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10), // Button shape
                     ),
                   ),
-                  child: const Text('Reject',
-                      style: TextStyle(color: Colors.white)),
+                  child: const Text('Reject'),
                 ),
               ],
             ),

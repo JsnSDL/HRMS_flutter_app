@@ -49,8 +49,6 @@ class _NotificationpageState extends State<Notificationpage> {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        print(jsonData); // Verify the structure of jsonData in console
-
         if (jsonData['birthdayWishes'] != null) {
           List<Employee> fetchedNotifications =
               (jsonData['birthdayWishes'] as List)
@@ -76,9 +74,9 @@ class _NotificationpageState extends State<Notificationpage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kMainColor,
+      backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
       appBar: AppBar(
-        backgroundColor: kMainColor,
+        backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
         title: const Text(
           'Notifications',
           style: TextStyle(color: Colors.white),

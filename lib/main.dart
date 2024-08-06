@@ -11,6 +11,32 @@ import 'providers/attendance_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Container(
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'images/error_image.png',
+            height: 100,
+            width: 100,
+          ),
+          const SizedBox(height: 16.0),
+          const Text(
+            'Something went wrong',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.black54,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  };
   runApp(MyApp(prefs: prefs));
 }
 

@@ -782,7 +782,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         color: Colors.white,
                       ),
                       child: ListTile(
-                        onTap: () => const NoticeList().launch(context),
+                        // onTap: () => const NoticeList().launch(context),
                         leading: const Image(
                             image: AssetImage('images/noticeboard.png')),
                         title: Text(
@@ -844,7 +844,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         color: Colors.white,
                       ),
                       child: ListTile(
-                        onTap: () => const LoanList().launch(context),
+                        // onTap: () => const LoanList().launch(context),
                         leading:
                             const Image(image: AssetImage('images/loan.png')),
                         title: Text(

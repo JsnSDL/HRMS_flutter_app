@@ -13,8 +13,6 @@ import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:nb_utils/nb_utils.dart';
 
 
-
-
 class Employee {
   final String empcode;
   final String empFname;
@@ -227,7 +225,7 @@ void assignProject() async {
                                       selectedTime.minute,
                                     );
                                     deadlineController.text =
-                                        DateFormat('yyyy-MM-dd HH:mm')
+                                        DateFormat('yyyy-MM-dd hh:mm a')
                                             .format(deadline!);
                                   });
                                 }

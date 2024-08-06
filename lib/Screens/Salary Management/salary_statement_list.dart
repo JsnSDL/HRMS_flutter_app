@@ -1,7 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api, depend_on_referenced_packages
 import 'package:flutter/material.dart';
 import 'package:hrm_employee/Screens/Salary%20Management/salary_statement_details.dart';
+import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:nb_utils/nb_utils.dart';
+import 'package:provider/provider.dart';
 import '../../constant.dart';
 
 class SalaryStatementList extends StatefulWidget {
@@ -12,6 +14,7 @@ class SalaryStatementList extends StatefulWidget {
 }
 
 class _SalaryStatementListState extends State<SalaryStatementList> {
+  late UserData userData;
   DateTime selectedDate = DateTime.now();
 
   Future<void> _selectDate(BuildContext context) async {
@@ -22,6 +25,12 @@ class _SalaryStatementListState extends State<SalaryStatementList> {
       });
     }
   }
+   @override
+  void initState() {
+    super.initState();
+    userData = Provider.of<UserData>(context, listen: false);
+  }
+  
 
   List<String> dateList=[
     '03, July 2021',
@@ -38,9 +47,9 @@ class _SalaryStatementListState extends State<SalaryStatementList> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: kMainColor,
+      backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
       appBar: AppBar(
-        backgroundColor: kMainColor,
+        backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
         elevation: 0.0,
         titleSpacing: 0.0,
         iconTheme: const IconThemeData(color: Colors.white),

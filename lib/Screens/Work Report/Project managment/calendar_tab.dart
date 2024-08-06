@@ -77,12 +77,7 @@ class _CalendarTabState extends State<CalendarTab> {
                       color: Colors.blueAccent,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.settings, color: Colors.blueAccent),
-                    onPressed: () {
-                      _showSettingsDialog(context);
-                    },
-                  ),
+             
                 ],
               ),
             ),

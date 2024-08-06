@@ -30,11 +30,11 @@ class _NoticeListState extends State<NoticeList> {
           maxLines: 2,
           style: kTextStyle.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        actions: const [
-          Image(
-            image: AssetImage('images/employeesearch.png'),
-          ),
-        ],
+        // actions: const [
+        //   Image(
+        //     image: AssetImage('images/employeesearch.png'),
+        //   ),
+        // ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,38 +50,38 @@ class _NoticeListState extends State<NoticeList> {
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(30.0), topRight: Radius.circular(30.0)),
                 color: Colors.white,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 20.0,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: kGreyTextColor.withOpacity(0.5)),
-                    ),
-                    child: ListTile(
-                      onTap: () {
-                        const NoticeDetails().launch(context);
-                      },
-                      leading: Image.asset('images/emp1.png'),
-                      title: Text(
-                        'Sahidul islam',
-                        style: kTextStyle,
-                      ),
-                      subtitle: Text(
-                        'Admin',
-                        style: kTextStyle.copyWith(color: kGreyTextColor),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        color: kGreyTextColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // child: Column(
+              //   crossAxisAlignment: CrossAxisAlignment.center,
+              //   children: [
+              //     const SizedBox(
+              //       height: 20.0,
+              //     ),
+              //     Container(
+              //       decoration: BoxDecoration(
+              //         borderRadius: BorderRadius.circular(10.0),
+              //         border: Border.all(color: kGreyTextColor.withOpacity(0.5)),
+              //       ),
+              //       child: ListTile(
+              //         onTap: () {
+              //           const NoticeDetails().launch(context);
+              //         },
+              //         leading: Image.asset('images/emp1.png'),
+              //         title: Text(
+              //           'Sahidul islam',
+              //           style: kTextStyle,
+              //         ),
+              //         subtitle: Text(
+              //           'Admin',
+              //           style: kTextStyle.copyWith(color: kGreyTextColor),
+              //         ),
+              //         trailing: const Icon(
+              //           Icons.arrow_forward_ios,
+              //           color: kGreyTextColor,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ),
           ),
         ],

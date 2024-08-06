@@ -80,9 +80,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: kMainColor,
+     backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
       appBar: AppBar(
-        backgroundColor: kMainColor,
+        backgroundColor:  (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
         elevation: 0.0,
         titleSpacing: 0.0,
         iconTheme: const IconThemeData(color: Colors.white),

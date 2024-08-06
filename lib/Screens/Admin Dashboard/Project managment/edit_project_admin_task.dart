@@ -45,7 +45,7 @@ class _EditProjectTaskScreenState extends State<EditProjectTaskScreen> {
 
   Future<void> _updateTask() async {
     if (deadline == null) {
-      print('Invalid deadline date');
+      toast('Invalid deadline date');
       return;
     }
 

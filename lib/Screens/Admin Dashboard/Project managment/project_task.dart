@@ -10,6 +10,8 @@ import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:nb_utils/nb_utils.dart';
+
 
 class ProjectTaskScreen extends StatefulWidget {
   final Project project;
@@ -73,7 +75,7 @@ class _ProjectTaskScreenState extends State<ProjectTaskScreen> {
       );
 
       if (response.statusCode == 200) {
-        print('Task posted successfully');
+        toast('Task assigned successfully');
         Navigator.push(
             context,
             MaterialPageRoute(
@@ -252,7 +254,7 @@ class _ProjectTaskScreenState extends State<ProjectTaskScreen> {
                               MultiSelectItem<String>(member, member))
                           .toList(),
                       title: const Text('Team Members'),
-                      selectedColor: Colors.grey,
+                      selectedColor: const Color.fromARGB(255, 84, 27, 94),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12.0),
