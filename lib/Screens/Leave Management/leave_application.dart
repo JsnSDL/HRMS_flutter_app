@@ -44,7 +44,7 @@ class _LeaveApplicationState extends State<LeaveApplication> {
   Future<void> fetchLeaveData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.5:3000/leave/get'),
+        Uri.parse('http://192.168.1.8:3000/leave/get'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -57,42 +57,30 @@ class _LeaveApplicationState extends State<LeaveApplication> {
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         final List<dynamic> leaveRecords = jsonData['leaveRecords'];
-        setState(() {
-          leaveData = List<LeaveData>.from(leaveRecords.map((record) {
-            String leaveType;
-            if (record['leaveType'] == 1) {
-              leaveType = 'Loss Of Pay';
-            } else if (record['leaveType'] == 2) {
-              leaveType = 'Sick Leave';
-            } else if (record['leaveType'] == 3) {
-              leaveType = 'Earned/Casual Leave';
-            } else {
-              leaveType = 'Unknown';
-            }
 
-            String dayType='';
-            if(record['half']==1){
-              dayType = "HalfDay";
-            } else if(record['half']==0){
-              dayType="FullDay";
-            }
+        // Check if the widget is still mounted before calling setState
+        if (!mounted) return;
+
+        setState(() {
+          leaveData = leaveRecords.map((record) {
+            String leaveType = _getLeaveType(record['leaveType']);
+            String dateRange = _getDateRange(record);
+            String dayType = _getDayType(record['half']);
+            String status = _getLeaveStatus(record);
+            print(dayType);
+
             return LeaveData(
               id: record['id'] ?? 0,
               leaveType: leaveType,
               dayType: dayType,
               reason: record['reason'] ?? '',
-              dateRange:
-                  '${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(record['fromdate']))} to ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(record['todate']))}',
+              dateRange: dateRange,
               applyDate: record['createddate'] ?? '',
               fromDate: DateTime.parse(record['fromdate']),
               toDate: DateTime.parse(record['todate']),
-              status: record['leave_status'] == 3
-                  ? "Rejected"
-                  : record['approvel_status'] == "Approved"
-                      ? "Approved"
-                      : "Pending",
+              status: status,
             );
-          }));
+          }).toList();
         });
       } else {
         throw Exception('Failed to load leave records');
@@ -103,60 +91,99 @@ class _LeaveApplicationState extends State<LeaveApplication> {
     }
   }
 
-  void editLeave(
-    BuildContext context,
-    int id,
-    String leaveType,
-    String dateRange,
-    String applyDate,
-    String dayType,
-    String reason,
-    DateTime fromDate,
-    DateTime toDate,
-    String status,
-  ) {
-    if (status == 'Approved') {
-      toast('Approved Leave cannot be edited');
-      return;
+  String _getLeaveType(int leaveTypeCode) {
+    switch (leaveTypeCode) {
+      case 1:
+        return 'Loss Of Pay';
+      case 2:
+        return 'Sick Leave';
+      case 3:
+        return 'Earned/Casual Leave';
+      default:
+        return 'Unknown';
     }
-    if (status == 'Rejected') {
-      toast('Rejected Leave cannot be edited');
-      return;
-    }
-    String halfDayDateRange = ''; // Variable to store half-day date range
-    String fullDayDateRange = ''; // Variable to store full-day date range
-
-    // Logic to classify date range based on leave type
-    if (leaveType == 'Loss Of Pay' ||
-        leaveType == 'Sick Leave' ||
-        leaveType == 'Earned/Casual Leave') {
-      if (dateRange.contains('(Full Day)')) {
-        fullDayDateRange = dateRange;
-      } else {
-        halfDayDateRange = dateRange;
-      }
-    } else {
-      fullDayDateRange = dateRange;
-    }
-
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditLeavePage(
-          id: id,
-          toDate: toDate,
-          leaveType: leaveType,
-          dayType:dayType,
-          halfDayDateRange: halfDayDateRange,
-          fullDayDateRange: fullDayDateRange,
-          applyDate: applyDate,
-          reason: reason, // Pass the reason here
-          fromDate: fromDate,
-        ),
-      ),
-    );
   }
+
+  String _getDayType(bool isHalfDay) {
+    return isHalfDay ? 'HalfDay' : 'FullDay';
+  }
+
+  String _getDateRange(Map<String, dynamic> record) {
+    if (record['half'] == true) {
+      // Handle half-day leave
+      String shift = record['shift'] == false ? 'First Half' : 'Second Half';
+      return '${DateFormat('yyyy-MM-dd').format(DateTime.parse(record['fromdate']))} ($shift)';
+    } else {
+      // Handle full-day leave
+      return '${DateFormat('yyyy-MM-dd').format(DateTime.parse(record['fromdate']))} to ${DateFormat('yyyy-MM-dd').format(DateTime.parse(record['todate']))}';
+    }
+  }
+
+  String _getLeaveStatus(Map<String, dynamic> record) {
+    if (record['leave_status'] == 3) {
+      return "Rejected";
+    } else if (record['approvel_status'] == "Approved") {
+      return "Approved";
+    } else {
+      return "Pending";
+    }
+  }
+
+  // void editLeave(
+  //   BuildContext context,
+  //   int id,
+  //   String leaveType,
+  //   String dateRange,
+  //   String applyDate,
+  //   String dayType,
+  //   String reason,
+  //   DateTime fromDate,
+  //   DateTime toDate,
+  //   String status,
+  // ) {
+  //   if (status == 'Approved') {
+  //     toast('Approved Leave cannot be edited');
+  //     return;
+  //   }
+  //   if (status == 'Rejected') {
+  //     toast('Rejected Leave cannot be edited');
+  //     return;
+  //   }
+  //   String halfDayDateRange = ''; // Variable to store half-day date range
+  //   String fullDayDateRange = ''; // Variable to store full-day date range
+
+  //   // Logic to classify date range based on leave type
+  //   if (leaveType == 'Loss Of Pay' ||
+  //       leaveType == 'Sick Leave' ||
+  //       leaveType == 'Earned/Casual Leave') {
+  //     if (dateRange.contains('(Full Day)')) {
+  //       fullDayDateRange = dateRange;
+  //     } else {
+  //       halfDayDateRange = dateRange;
+  //     }
+  //   } else {
+  //     fullDayDateRange = dateRange;
+  //   }
+
+
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => EditLeavePage(
+  //         id: id,
+  //         toDate: toDate,
+  //         leaveType: leaveType,
+  //         dayType:dayType,
+  //         halfDayDateRange: halfDayDateRange,
+  //         fullDayDateRange: fullDayDateRange,
+  //         applyDate: applyDate,
+  //         reason: reason, // Pass the reason here
+  //         fromDate: fromDate,
+  //       ),
+  //     ),
+  //   );
+  // }
+
 
   Future<void> _handleRefresh() async {
     await Future.delayed(const Duration(seconds: 2));
@@ -257,20 +284,6 @@ class _LeaveApplicationState extends State<LeaveApplication> {
                                         reason: leave.reason,
                                         fromDate: leave.fromDate,
                                         toDate: leave.toDate,
-                                        onEdit: () {
-                                          editLeave(
-                                            context,
-                                            leave.id,
-                                            leave.leaveType,
-                                            leave.dateRange,
-                                            leave.dayType,
-                                            leave.applyDate,
-                                            leave.reason,
-                                            leave.fromDate,
-                                            leave.toDate,
-                                            leave.status,
-                                          );
-                                        },
                                       ),
                                       const SizedBox(
                                         height: 10.0,
@@ -319,23 +332,23 @@ class LeaveData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-       String formatDateTime(DateTime dateTime) {
-    // Check if the time part is 00:00:00
-    if (dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0) {
-      // Format only the date
-      return DateFormat('yyyy-MM-dd').format(dateTime);
-    } else {
-      // Format date and time
-      return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
-    }
-  }
+  //      String formatDateTime(DateTime dateTime) {
+  //   // Check if the time part is 00:00:00
+  //   if (dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0) {
+  //     // Format only the date
+  //     return DateFormat('yyyy-MM-dd').format(dateTime);
+  //   } else {
+  //     // Format date and time
+  //     return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+  //   }
+  // }
 
-    final dateRanges = dateRange.split(' to ');
-    final fromDate = DateTime.parse(dateRanges[0]);
-    final toDate = DateTime.parse(dateRanges[1]);
+  //   final dateRanges = dateRange.split(' to ');
+  //   final fromDate = DateTime.parse(dateRanges[0]);
+  //   final toDate = DateTime.parse(dateRanges[1]);
 
-    String formattedDateRange =
-        '${formatDateTime(fromDate)} to ${formatDateTime(toDate)}';
+  //   String formattedDateRange =
+  //       '${formatDateTime(fromDate)} to ${formatDateTime(toDate)}';
 
     final applyDateFormat = DateFormat('dd, MMM yyyy');
     final formattedApplyDate =
@@ -375,9 +388,40 @@ class LeaveData extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  if (onEdit != null)
                     GestureDetector(
-                      onTap: onEdit,
+                      onTap: (){
+                          if (status == 'Approved') {
+                        toast('Approved Leave cannot be edited');
+                        return;
+                      }
+                      if (status == 'Rejected') {
+                        toast('Rejected Leave cannot be edited');
+                        return;
+                      }
+                      String halfDayDateRange = '';
+                      String fullDayDateRange = '';
+                      String shift = dateRange.contains('First Half')
+                          ? 'First Half'
+                          : 'Second Half';
+                      print(shift);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditLeavePage(
+                            id: id,
+                            toDate: toDate,
+                            leaveType: leaveType,
+                            dayType: dayType,
+                            shift: shift,
+                            halfDayDateRange: halfDayDateRange,
+                            fullDayDateRange: fullDayDateRange,
+                            applyDate: applyDate,
+                            reason: reason, // Pass the reason here
+                            fromDate: fromDate,
+                          ),
+                        ),
+                      );
+                      },
                       child: const Icon(
                         Icons.edit,
                         size: 18.0,
@@ -386,7 +430,7 @@ class LeaveData extends StatelessWidget {
                 ],
               ),
               Text(
-                formattedDateRange,
+                dateRange,
                 style: kTextStyle.copyWith(
                   color: kGreyTextColor,
                 ),
