@@ -46,6 +46,12 @@ class _LeaveApplyState extends State<LeaveApply> {
     0: 'FullDay',
     1: 'HalfDay',
   };
+  
+  static const Map<int, String> shiftOfHalf = {
+    0: 'First Half',
+    1: 'Second Half',
+  };
+   int shift = 0;
 
   String? selectedLeaveType;
   String? selectedTypeOfDay;
@@ -201,14 +207,15 @@ void applyLeave() async {
   String reason = descriptionController.text;
 
   int halfDay = selectedTypeOfDay == 'FullDay' ? 0 : 1;
+  int? shiftValue = shift;
 
-  String startTime = '';
-  String endTime = '';
+  // String startTime = '';
+  // String endTime = '';
 
-  if (selectedTypeOfDay == 'HalfDay') {
-    startTime = selectedStartTime != null ? '$fromDate ${selectedStartTime!.format(context)}' : 'Unknown';
-    endTime = selectedEndTime != null ? '$fromDate ${selectedEndTime!.format(context)}' : 'Unknown';
-  }
+  // if (selectedTypeOfDay == 'HalfDay') {
+  //   startTime = selectedStartTime != null ? '$fromDate ${selectedStartTime!.format(context)}' : 'Unknown';
+  //   endTime = selectedEndTime != null ? '$fromDate ${selectedEndTime!.format(context)}' : 'Unknown';
+  // }
 
   // Calculate numberOfDays based on leave type
   double numberOfDays;
@@ -274,9 +281,10 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
     'leaveid': leaveId,
     'leavemode': 1,
     'reason': reason,
-    'fromdate':  selectedTypeOfDay == 'FullDay' ? fromDate : startTime,
-    'todate': selectedTypeOfDay == 'FullDay' ? toDate : endTime,
+    'fromdate':  selectedTypeOfDay == 'FullDay' ? fromDate : fromDate,
+    'todate': selectedTypeOfDay == 'FullDay' ? toDate : fromDate,
     'half': halfDay,
+    'shift': shiftValue,
     'no_of_days': numberOfDays,
     'leave_adjusted': 0,
     'approvel_status': 0,
@@ -566,123 +574,46 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                       const SizedBox(height: 20.0),
                       // Time Pickers (only shown for HalfDay)
                       if (selectedTypeOfDay == 'HalfDay') ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Start Time',
-                                    style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      TimeOfDay? pickedTime = await showTimePicker(
-                                        context: context,
-                                        initialTime: TimeOfDay.now(),
-                                      );
-                                      if (pickedTime != null) {
-                                        setState(() {
-                                          selectedStartTime = pickedTime;
-                                        });
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey),
-                                        borderRadius: BorderRadius.circular(20.0),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            selectedStartTime != null
-                                                ? selectedStartTime!.format(context)
-                                                : 'Select Time',
-                                            style: TextStyle(
-                                              color: selectedStartTime != null ? Colors.black : Colors.grey,
-                                            ),
-                                          ),
-                                          const Icon(Icons.access_time, color: kMainColor),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  if (selectedStartTime == null)
-                                    const Padding(
-                                      padding: EdgeInsets.only(top: 8.0),
-                                      child: Text(
-                                        'Please select a start time',
-                                        style: TextStyle(color: Colors.red, fontSize: 12),
-                                      ),
-                                    ),
-                                ],
-                              ),
+                            const Text(
+                              'Select Half Day Mode',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(width: 20.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'End Time',
-                                    style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
+                            const SizedBox(height: 8.0),
+                            Container(
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color:
+                                        const Color.fromRGBO(192, 190, 190, 1),
+                                    width: 1.5,
                                   ),
-                                  const SizedBox(height: 8.0),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      TimeOfDay? pickedTime = await showTimePicker(
-                                        context: context,
-                                        initialTime: TimeOfDay.now(),
-                                      );
-                                      if (pickedTime != null) {
-                                        setState(() {
-                                          selectedEndTime = pickedTime;
-                                        });
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey),
-                                        borderRadius: BorderRadius.circular(20.0),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            selectedEndTime != null ? selectedEndTime!.format(context) : 'Select Time',
-                                            style: TextStyle(
-                                              color: selectedEndTime != null ? Colors.black : Colors.grey,
-                                            ),
-                                          ),
-                                          const Icon(Icons.access_time, color: kMainColor),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  if (selectedEndTime == null)
-                                    const Padding(
-                                      padding:  EdgeInsets.only(top: 8.0),
-                                      child: Text(
-                                        'Please select an end time',
-                                        style: TextStyle(color: Colors.red, fontSize: 12),
-                                      ),
-                                    ),
-                                ],
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(15.0))),
+                              child: CustomDropdown(
+                                items: shiftOfHalf.values.toList(),
+                                hintText: 'Select Half Mode',
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    // Find the corresponding integer value
+                                    shift = shiftOfHalf.keys.firstWhere(
+                                      (key) => shiftOfHalf[key] == newValue,
+                                      orElse: () =>
+                                          0, // Default value if not found
+                                    );
+                                  });
+                                },
+                                decoration: const CustomDropdownDecoration(
+                                    expandedBorderRadius: BorderRadius.all(
+                                        Radius.circular(20.0))),
                               ),
                             ),
                           ],
                         ),
                       ],
                       const SizedBox(height: 20.0),
-                       // Remaining Leaves (calculated automatically)
-                     
-                     
+                       // Remaining Leaves (calculated automatically)   
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
