@@ -18,7 +18,7 @@ const isSunday = (date) => {
 
 exports.insertLeave = async (req, res) => {
   const {
-    company_id, empcode, leaveid, leavemode, reason, fromdate, todate, half, no_of_days, leave_adjusted,
+    company_id, empcode, leaveid, leavemode, reason, fromdate, todate, half, shift, no_of_days, leave_adjusted,
     approvel_status, leave_status, flag, status, createddate, createdby, modifieddate, modifiedby
   } = req.body;
 
@@ -102,6 +102,7 @@ exports.insertLeave = async (req, res) => {
         fromdate, 
         todate, 
         half, 
+        shift,
         no_of_days,
         leave_adjusted,
         approvel_status,
@@ -121,7 +122,8 @@ exports.insertLeave = async (req, res) => {
         @reason, 
         @fromdate, 
         @todate, 
-        @half, 
+        @half,
+        @shift, 
         @no_of_days,
         @leave_adjusted,
         @approvel_status,
@@ -143,6 +145,7 @@ exports.insertLeave = async (req, res) => {
       .input('fromdate', fromdate)
       .input('todate', todate)
       .input('half', half)
+      .input('shift',shift)
       .input('no_of_days', no_of_days)
       .input('leave_adjusted', leave_adjusted)
       .input('approvel_status', approvel_status)
@@ -266,7 +269,7 @@ exports.fetchLeave = (req, res) => {
   const { empcode } = req.body; 
 
   const fetchSql = `
-    SELECT id, leaveid, fromdate, todate, createddate, approvel_status, leave_status, reason, no_of_days, half
+    SELECT id, leaveid, fromdate, todate, createddate, approvel_status, leave_status, reason, no_of_days, half, shift
     FROM tbl_leave_apply_leave
     WHERE empcode = @empcode
   `;
@@ -282,6 +285,7 @@ exports.fetchLeave = (req, res) => {
         id:record.id,
         leaveType: record.leaveid,
         half:record.half,
+        shift:record.shift,
         fromdate: record.fromdate,
         todate: record.todate,
         createddate: record.createddate,
@@ -304,6 +308,7 @@ exports.editLeave = async (req, res) => {
     fromdate,
     todate,
     half,
+    shift,
     no_of_days,
   } = req.body;
 
@@ -387,6 +392,7 @@ exports.editLeave = async (req, res) => {
         fromdate = @fromdate, 
         todate = @todate, 
         half = @half, 
+        shift= @shift,
         no_of_days = @no_of_days
       WHERE 
         id = @id 
@@ -400,6 +406,7 @@ exports.editLeave = async (req, res) => {
       .input('fromdate', fromdate)
       .input('todate', todate)
       .input('half', half)
+      .input('shift', shift)
       .input('no_of_days', no_of_days)
       .query(updateSql);
 
