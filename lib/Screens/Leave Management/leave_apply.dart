@@ -26,15 +26,16 @@ class _LeaveApplyState extends State<LeaveApply> {
   final toDateController = TextEditingController();
   final oneDateController = TextEditingController();
   final descriptionController = TextEditingController();
-  final daysController = TextEditingController(); // New field for Number of days
+  final daysController =
+      TextEditingController(); // New field for Number of days
   final remainingLeavesController = TextEditingController();
   bool isFullDay = true;
   bool isFirstHalf = true;
   TimeOfDay? selectedStartTime;
   TimeOfDay? selectedEndTime;
   bool _isInitialLoad = true;
-  String types= 'Loss Of Pay';
-  String daytype='FullDay';
+  String types = 'Loss Of Pay';
+  String daytype = 'FullDay';
 
   static const Map<int, String> typeOfLeave = {
     1: 'Loss Of Pay',
@@ -53,8 +54,8 @@ class _LeaveApplyState extends State<LeaveApply> {
   @override
   void initState() {
     super.initState();
-    selectedLeaveType ??= typeOfLeave[1]; 
-    selectedTypeOfDay ??= typeOfDay[0]; 
+    selectedLeaveType ??= typeOfLeave[1];
+    selectedTypeOfDay ??= typeOfDay[0];
     fromDateController.addListener(updateNumberOfDays);
     toDateController.addListener(updateNumberOfDays);
   }
@@ -82,30 +83,30 @@ class _LeaveApplyState extends State<LeaveApply> {
   }
 
   void updateNumberOfDays() {
-  String fromDate = fromDateController.text;
-  String toDate = toDateController.text;
+    String fromDate = fromDateController.text;
+    String toDate = toDateController.text;
 
-  if (fromDate.isNotEmpty) {
-    DateTime startDate = DateTime.parse(fromDate);
-    DateTime endDate;
+    if (fromDate.isNotEmpty) {
+      DateTime startDate = DateTime.parse(fromDate);
+      DateTime endDate;
 
-    // Check if toDate is provided
-    if (toDate.isNotEmpty) {
-      endDate = DateTime.parse(toDate);
-    } else {
-      // Set endDate to startDate if toDate is not provided (assuming it's a half day)
-      endDate = startDate;
+      // Check if toDate is provided
+      if (toDate.isNotEmpty) {
+        endDate = DateTime.parse(toDate);
+      } else {
+        // Set endDate to startDate if toDate is not provided (assuming it's a half day)
+        endDate = startDate;
+      }
+
+      int numberOfDays = endDate.difference(startDate).inDays + 1;
+      double adjustedNumberOfDays =
+          selectedTypeOfDay == 'HalfDay' ? 0.5 : numberOfDays.toDouble();
+      daysController.text = adjustedNumberOfDays.toString();
     }
-
-    int numberOfDays = endDate.difference(startDate).inDays + 1;
-    double adjustedNumberOfDays = selectedTypeOfDay == 'HalfDay' ? 0.5 : numberOfDays.toDouble();
-    daysController.text = adjustedNumberOfDays.toString();
   }
-}
 
-
-
-  Future<Map<String, dynamic>> checkLeaveExists(String fromdate, String createddate) async {
+  Future<Map<String, dynamic>> checkLeaveExists(
+      String fromdate, String createddate) async {
     String url = 'http://192.168.1.5:3000/leave/check';
 
     Map<String, dynamic> requestBody = {
@@ -135,122 +136,132 @@ class _LeaveApplyState extends State<LeaveApply> {
         };
       } else {
         print('Failed to check leave: ${response.statusCode}');
-        return {
-          'exists': false,
-          'no_of_days': null
-        };
+        return {'exists': false, 'no_of_days': null};
       }
     } catch (e) {
       print('Exception while checking leave: $e');
-      return {
-        'exists': false,
-        'no_of_days': null
-      };
+      return {'exists': false, 'no_of_days': null};
     }
   }
 
- void checkAndUpdateRemainingLeaves() async {
-  print('checkAndUpdateRemainingLeaves called');
-  String url = 'http://192.168.1.5:3000/leave/remain';
+  void checkAndUpdateRemainingLeaves() async {
+    print('checkAndUpdateRemainingLeaves called');
+    String url = 'http://192.168.1.5:3000/leave/remain';
 
-  Map<String, dynamic> requestBody = {
-    'company_id': '2',
-    'empcode': userData.userID,
-  };
+    Map<String, dynamic> requestBody = {
+      'company_id': '2',
+      'empcode': userData.userID,
+    };
 
-  String jsonData = jsonEncode(requestBody);
+    String jsonData = jsonEncode(requestBody);
 
-  try {
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${userData.token}',
-      },
-      body: jsonData,
-    );
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${userData.token}',
+        },
+        body: jsonData,
+      );
 
-    if (response.statusCode == 200) {
-      var responseBody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        var responseBody = jsonDecode(response.body);
 
-      double remainingSickLeaves = (responseBody['leaveData']['2']['total'] as num).toDouble() - (responseBody['leaveData']['2']['used'] as num).toDouble();
-      double remainingEarnedLeaves = (responseBody['leaveData']['3']['total'] as num).toDouble() - (responseBody['leaveData']['3']['used'] as num).toDouble();
-      bool isEligibleForOtherLeaves = responseBody['isEligibleForOtherLeaves'];
+        double remainingSickLeaves =
+            (responseBody['leaveData']['2']['total'] as num).toDouble() -
+                (responseBody['leaveData']['2']['used'] as num).toDouble();
+        double remainingEarnedLeaves =
+            (responseBody['leaveData']['3']['total'] as num).toDouble() -
+                (responseBody['leaveData']['3']['used'] as num).toDouble();
+        bool isEligibleForOtherLeaves =
+            responseBody['isEligibleForOtherLeaves'];
 
-       setState(() {
-        if (selectedLeaveType == 'Sick Leave') {
-          remainingLeavesController.text = isEligibleForOtherLeaves ? remainingSickLeaves.toStringAsFixed(1) : '0';
-        } else if (selectedLeaveType == 'Earned/Casual Leave') {
-          remainingLeavesController.text = isEligibleForOtherLeaves ? remainingEarnedLeaves.toStringAsFixed(1) : '0';
-        } else {
-          remainingLeavesController.text = "0"; // Assuming Loss Of Pay does not have a limit
-        }
-      });
+        setState(() {
+          if (selectedLeaveType == 'Sick Leave') {
+            remainingLeavesController.text = isEligibleForOtherLeaves
+                ? remainingSickLeaves.toStringAsFixed(1)
+                : '0';
+          } else if (selectedLeaveType == 'Earned/Casual Leave') {
+            remainingLeavesController.text = isEligibleForOtherLeaves
+                ? remainingEarnedLeaves.toStringAsFixed(1)
+                : '0';
+          } else {
+            remainingLeavesController.text =
+                "0"; // Assuming Loss Of Pay does not have a limit
+          }
+        });
+      } else {
+        print('Failed to check leave: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception while checking leave: $e');
+    }
+  }
+
+  void applyLeave() async {
+    String fromDate = fromDateController.text;
+    String toDate = toDateController.text;
+    String oneDate = oneDateController.text;
+    String reason = descriptionController.text;
+
+    int halfDay = selectedTypeOfDay == 'FullDay' ? 0 : 1;
+
+    String startTime = '';
+    String endTime = '';
+
+    if (selectedTypeOfDay == 'HalfDay') {
+      startTime = selectedStartTime != null
+          ? '$fromDate ${selectedStartTime!.format(context)}'
+          : 'Unknown';
+      endTime = selectedEndTime != null
+          ? '$fromDate ${selectedEndTime!.format(context)}'
+          : 'Unknown';
+    }
+
+    // Calculate numberOfDays based on leave type
+    double numberOfDays;
+    if (selectedTypeOfDay == 'FullDay') {
+      if (fromDate.isNotEmpty && toDate.isNotEmpty) {
+        DateTime startDate = DateTime.parse(fromDate);
+        DateTime endDate = DateTime.parse(toDate);
+        numberOfDays = endDate.difference(startDate).inDays + 1;
+      } else {
+        numberOfDays =
+            1.0; // Default to 1 day if 'fromDate' and 'toDate' are empty
+      }
     } else {
-      print('Failed to check leave: ${response.statusCode}');
+      numberOfDays = 0.5;
     }
-  } catch (e) {
-    print('Exception while checking leave: $e');
-  }
-}
 
-void applyLeave() async {
-  String fromDate = fromDateController.text;
-  String toDate = toDateController.text;
-  String oneDate = oneDateController.text;
-  String reason = descriptionController.text;
-
-  int halfDay = selectedTypeOfDay == 'FullDay' ? 0 : 1;
-
-  String startTime = '';
-  String endTime = '';
-
-  if (selectedTypeOfDay == 'HalfDay') {
-    startTime = selectedStartTime != null ? '$fromDate ${selectedStartTime!.format(context)}' : 'Unknown';
-    endTime = selectedEndTime != null ? '$fromDate ${selectedEndTime!.format(context)}' : 'Unknown';
-  }
-
-  // Calculate numberOfDays based on leave type
-  double numberOfDays;
-  if (selectedTypeOfDay == 'FullDay') {
-    if (fromDate.isNotEmpty && toDate.isNotEmpty) {
-      DateTime startDate = DateTime.parse(fromDate);
-      DateTime endDate = DateTime.parse(toDate);
-      numberOfDays = endDate.difference(startDate).inDays + 1;
-    } else {
-      numberOfDays = 1.0; // Default to 1 day if 'fromDate' and 'toDate' are empty
+    // Determine leaveId based on selectedLeaveType
+    int leaveId;
+    switch (selectedLeaveType) {
+      case 'Sick Leave':
+        leaveId = 2;
+        break;
+      case 'Earned/Casual Leave':
+        leaveId = 3;
+        break;
+      case 'Loss of Pay':
+        leaveId = 1;
+        break;
+      default:
+        leaveId = 1;
     }
-  } else {
-    numberOfDays = 0.5;
-  }
 
-  // Determine leaveId based on selectedLeaveType
-  int leaveId;
-  switch (selectedLeaveType) {
-    case 'Sick Leave':
-      leaveId = 2;
-      break;
-    case 'Earned/Casual Leave':
-      leaveId = 3;
-      break;
-    case 'Loss of Pay':
-      leaveId = 1;
-      break;
-    default:
-      leaveId = 1; 
-  }
-
-String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
+    String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
 
     // Check if leave already exists or if leaves are exhausted
-    Map<String, dynamic> leaveExists = await checkLeaveExists(fromDate, createdDate);
+    Map<String, dynamic> leaveExists =
+        await checkLeaveExists(fromDate, createdDate);
     if (leaveExists['exists']) {
       toast('Either leave exists or your leaves are exhausted');
       return;
     }
 
-  // Adjust remaining leaves based on leave type and availability
-   double remainingLeaves;
+    // Adjust remaining leaves based on leave type and availability
+    double remainingLeaves;
     try {
       remainingLeaves = double.parse(remainingLeavesController.text);
     } catch (e) {
@@ -258,7 +269,7 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
       remainingLeaves = 0;
     }
 
- if (leaveId == 1) {
+    if (leaveId == 1) {
     } else if (remainingLeaves < numberOfDays) {
       toast('Cannot apply for $selectedLeaveType. Leaves are exhausted.');
       return;
@@ -267,59 +278,60 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
       remainingLeavesController.text = remainingLeaves.toStringAsFixed(1);
     }
 
-  // Construct leave data to be sent to server
-  Map<String, dynamic> leaveValues = {
-    'company_id': '2',
-    'empcode': userData.userID,
-    'leaveid': leaveId,
-    'leavemode': 1,
-    'reason': reason,
-    'fromdate':  selectedTypeOfDay == 'FullDay' ? fromDate : startTime,
-    'todate': selectedTypeOfDay == 'FullDay' ? toDate : endTime,
-    'half': halfDay,
-    'no_of_days': numberOfDays,
-    'leave_adjusted': 0,
-    'approvel_status': 0,
-    'leave_status': 0,
-    'flag': 1,
-    'status': 1,
-    'createddate': createdDate,
-    'createdby': userData.userID,
-    'modifieddate': createdDate,
-    'modifiedby': userData.userID,
-  };
+    // Construct leave data to be sent to server
+    Map<String, dynamic> leaveValues = {
+      'company_id': '2',
+      'empcode': userData.userID,
+      'leaveid': leaveId,
+      'leavemode': 1,
+      'reason': reason,
+      'fromdate': selectedTypeOfDay == 'FullDay' ? fromDate : startTime,
+      'todate': selectedTypeOfDay == 'FullDay' ? toDate : endTime,
+      'half': halfDay,
+      'no_of_days': numberOfDays,
+      'leave_adjusted': 0,
+      'approvel_status': 0,
+      'leave_status': 0,
+      'flag': 1,
+      'status': 1,
+      'createddate': createdDate,
+      'createdby': userData.userID,
+      'modifieddate': createdDate,
+      'modifiedby': userData.userID,
+    };
 
-  String jsonData = jsonEncode(leaveValues);
+    String jsonData = jsonEncode(leaveValues);
 
-  String url = 'http://192.168.1.5:3000/leave/apply';
+    String url = 'http://192.168.1.5:3000/leave/apply';
 
-  try {
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${userData.token}',
-      },
-      body: jsonData,
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leave applied successfully')));
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LeaveManagementScreen()),
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${userData.token}',
+        },
+        body: jsonData,
       );
-    } else {
-      final errorResponse = jsonDecode(response.body);
-      toast(errorResponse['message']);
-    }
-  } catch (e) {
-    print('Exception while posting leave: $e');
-  }
-}
 
-  
-   @override
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Leave applied successfully')));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const LeaveManagementScreen()),
+        );
+      } else {
+        final errorResponse = jsonDecode(response.body);
+        toast(errorResponse['message']);
+      }
+    } catch (e) {
+      print('Exception while posting leave: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     userData = Provider.of<UserData>(context, listen: false);
     return Scaffold(
@@ -364,27 +376,30 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Leave Type',
-                          style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
-                                  ),
+                          Text(
+                            'Leave Type',
+                            style: kTextStyle.copyWith(
+                                fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 8.0),
                           Container(
                             decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: const Color.fromRGBO(192, 190, 190, 1)),
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(12.0))),
+                                    color:
+                                        const Color.fromRGBO(192, 190, 190, 1)),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(12.0))),
                             child: CustomDropdown(
-                                    items: typeOfLeave.values.toList(),
-                                    // initialItem: selectedLeaveType,
-                                    hintText: 'Select Leave Type',
-                                    onChanged: (newValue) {
-                                      setState(() {
-                                        selectedLeaveType = newValue as String?;
-                                        checkAndUpdateRemainingLeaves();
-                                      });
-                                    },
-                                  ),
+                              items: typeOfLeave.values.toList(),
+                              // initialItem: selectedLeaveType,
+                              hintText: 'Select Leave Type',
+                              onChanged: (newValue) {
+                                setState(() {
+                                  selectedLeaveType = newValue as String?;
+                                  checkAndUpdateRemainingLeaves();
+                                });
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -393,24 +408,28 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                            Text('Leave Mode',
-                          style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
-                                  ),
+                          Text(
+                            'Leave Mode',
+                            style: kTextStyle.copyWith(
+                                fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 8.0),
                           Container(
                             decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: const Color.fromRGBO(192, 190, 190, 1)),
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(12.0))),
+                                    color:
+                                        const Color.fromRGBO(192, 190, 190, 1)),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(12.0))),
                             child: CustomDropdown(
                               items: typeOfDay.values.toList(),
                               hintText: 'Select Leave Mode',
-                              
+
                               // initialItem: daytype,
                               onChanged: (newValue) {
                                 setState(() {
-                                  daytype = selectedTypeOfDay = newValue.toString();
+                                  daytype =
+                                      selectedTypeOfDay = newValue.toString();
                                   // Reset time selections when changing type of day
                                   selectedStartTime = null;
                                   selectedEndTime = null;
@@ -421,12 +440,14 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                         ],
                       ),
                       const SizedBox(height: 20.0),
-                       Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                            Text('Leave Balance',
-                          style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
-                                  ),
+                          Text(
+                            'Leave Balance',
+                            style: kTextStyle.copyWith(
+                                fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 8.0),
                           TextFormField(
                             readOnly: true,
@@ -436,10 +457,11 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                               hintStyle: TextStyle(
                                   color: Colors.grey,
                                   fontWeight: FontWeight.w400),
-                              contentPadding:  EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 15.0, vertical: 15.0),
                               border: OutlineInputBorder(
-                                 borderRadius: BorderRadius.all(Radius.circular(20.0))
-                              ),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0))),
                             ),
                           ),
                         ],
@@ -455,7 +477,8 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                               children: [
                                 Text(
                                   'From Date',
-                                  style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
+                                  style: kTextStyle.copyWith(
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 8.0),
                                 TextFormField(
@@ -464,33 +487,42 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                   decoration: const InputDecoration(
                                     hintText: 'Select Date',
                                     hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w400),
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w400),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 15.0, vertical: 15.0),
                                     border: OutlineInputBorder(
-                                       borderRadius: BorderRadius.all(Radius.circular(20.0))
-                                    ),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20.0))),
                                   ),
                                   onTap: () async {
                                     DateTime? pickedDate = await showDatePicker(
                                       context: context,
                                       initialDate: DateTime.now(),
                                       firstDate: DateTime.now(),
-                                      lastDate: DateTime(DateTime.now().year + 1),
-                                      builder: (BuildContext context, Widget? child) {
+                                      lastDate:
+                                          DateTime(DateTime.now().year + 1),
+                                      builder: (BuildContext context,
+                                          Widget? child) {
                                         return Theme(
                                           data: ThemeData.light().copyWith(
                                             primaryColor: kMainColor,
                                             // accentColor: kMainColor,
-                                            colorScheme: const ColorScheme.light(primary: kMainColor),
-                                            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                                            colorScheme:
+                                                const ColorScheme.light(
+                                                    primary: kMainColor),
+                                            buttonTheme: const ButtonThemeData(
+                                                textTheme:
+                                                    ButtonTextTheme.primary),
                                           ),
                                           child: child!,
                                         );
                                       },
                                     );
                                     if (pickedDate != null) {
-                                      fromDateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                      fromDateController.text =
+                                          DateFormat('yyyy-MM-dd')
+                                              .format(pickedDate);
                                       updateNumberOfDays();
                                     }
                                   },
@@ -505,14 +537,16 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                             ),
                           ),
                           const SizedBox(width: 20.0),
-                          if (selectedTypeOfDay != 'HalfDay') // Only show To Date picker if Full Day is selected
+                          if (selectedTypeOfDay !=
+                              'HalfDay') // Only show To Date picker if Full Day is selected
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'To Date',
-                                    style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
+                                    style: kTextStyle.copyWith(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 8.0),
                                   TextFormField(
@@ -521,33 +555,44 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                     decoration: const InputDecoration(
                                       hintText: 'Select Date',
                                       hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w400),
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.w400),
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 15.0, vertical: 15.0),
                                       border: OutlineInputBorder(
-                                         borderRadius: BorderRadius.all(Radius.circular(20.0))
-                                      ),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20.0))),
                                     ),
                                     onTap: () async {
-                                      DateTime? pickedDate = await showDatePicker(
+                                      DateTime? pickedDate =
+                                          await showDatePicker(
                                         context: context,
                                         initialDate: DateTime.now(),
                                         firstDate: DateTime.now(),
-                                        lastDate: DateTime(DateTime.now().year + 1),
-                                        builder: (BuildContext context, Widget? child) {
+                                        lastDate:
+                                            DateTime(DateTime.now().year + 1),
+                                        builder: (BuildContext context,
+                                            Widget? child) {
                                           return Theme(
                                             data: ThemeData.light().copyWith(
                                               primaryColor: kMainColor,
                                               // accentColor: kMainColor,
-                                              colorScheme: const ColorScheme.light(primary: kMainColor),
-                                              buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                                              colorScheme:
+                                                  const ColorScheme.light(
+                                                      primary: kMainColor),
+                                              buttonTheme:
+                                                  const ButtonThemeData(
+                                                      textTheme: ButtonTextTheme
+                                                          .primary),
                                             ),
                                             child: child!,
                                           );
                                         },
                                       );
                                       if (pickedDate != null) {
-                                        toDateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                        toDateController.text =
+                                            DateFormat('yyyy-MM-dd')
+                                                .format(pickedDate);
                                         updateNumberOfDays();
                                       }
                                     },
@@ -575,12 +620,14 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                 children: [
                                   Text(
                                     'Start Time',
-                                    style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
+                                    style: kTextStyle.copyWith(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 8.0),
                                   GestureDetector(
                                     onTap: () async {
-                                      TimeOfDay? pickedTime = await showTimePicker(
+                                      TimeOfDay? pickedTime =
+                                          await showTimePicker(
                                         context: context,
                                         initialTime: TimeOfDay.now(),
                                       );
@@ -591,23 +638,30 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                       }
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15.0, vertical: 15.0),
                                       decoration: BoxDecoration(
                                         border: Border.all(color: Colors.grey),
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             selectedStartTime != null
-                                                ? selectedStartTime!.format(context)
+                                                ? selectedStartTime!
+                                                    .format(context)
                                                 : 'Select Time',
                                             style: TextStyle(
-                                              color: selectedStartTime != null ? Colors.black : Colors.grey,
+                                              color: selectedStartTime != null
+                                                  ? Colors.black
+                                                  : Colors.grey,
                                             ),
                                           ),
-                                          const Icon(Icons.access_time, color: kMainColor),
+                                          const Icon(Icons.access_time,
+                                              color: kMainColor),
                                         ],
                                       ),
                                     ),
@@ -617,7 +671,8 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                       padding: EdgeInsets.only(top: 8.0),
                                       child: Text(
                                         'Please select a start time',
-                                        style: TextStyle(color: Colors.red, fontSize: 12),
+                                        style: TextStyle(
+                                            color: Colors.red, fontSize: 12),
                                       ),
                                     ),
                                 ],
@@ -630,12 +685,14 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                 children: [
                                   Text(
                                     'End Time',
-                                    style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
+                                    style: kTextStyle.copyWith(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 8.0),
                                   GestureDetector(
                                     onTap: () async {
-                                      TimeOfDay? pickedTime = await showTimePicker(
+                                      TimeOfDay? pickedTime =
+                                          await showTimePicker(
                                         context: context,
                                         initialTime: TimeOfDay.now(),
                                       );
@@ -646,31 +703,41 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                       }
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15.0, vertical: 15.0),
                                       decoration: BoxDecoration(
                                         border: Border.all(color: Colors.grey),
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            selectedEndTime != null ? selectedEndTime!.format(context) : 'Select Time',
+                                            selectedEndTime != null
+                                                ? selectedEndTime!
+                                                    .format(context)
+                                                : 'Select Time',
                                             style: TextStyle(
-                                              color: selectedEndTime != null ? Colors.black : Colors.grey,
+                                              color: selectedEndTime != null
+                                                  ? Colors.black
+                                                  : Colors.grey,
                                             ),
                                           ),
-                                          const Icon(Icons.access_time, color: kMainColor),
+                                          const Icon(Icons.access_time,
+                                              color: kMainColor),
                                         ],
                                       ),
                                     ),
                                   ),
                                   if (selectedEndTime == null)
                                     const Padding(
-                                      padding:  EdgeInsets.only(top: 8.0),
+                                      padding: EdgeInsets.only(top: 8.0),
                                       child: Text(
                                         'Please select an end time',
-                                        style: TextStyle(color: Colors.red, fontSize: 12),
+                                        style: TextStyle(
+                                            color: Colors.red, fontSize: 12),
                                       ),
                                     ),
                                 ],
@@ -680,16 +747,16 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                         ),
                       ],
                       const SizedBox(height: 20.0),
-                       // Remaining Leaves (calculated automatically)
-                     
-                     
+                      // Remaining Leaves (calculated automatically)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                             Text('Number of Days',
-                          style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
-                         ),
-                         const SizedBox(height: 8.0),
+                          Text(
+                            'Number of Days',
+                            style: kTextStyle.copyWith(
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8.0),
                           TextFormField(
                             readOnly: true,
                             controller: daysController,
@@ -698,24 +765,29 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                               hintStyle: TextStyle(
                                   color: Colors.grey,
                                   fontWeight: FontWeight.w400),
-                              contentPadding:  EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 15.0, vertical: 15.0),
                               border: OutlineInputBorder(
-                                 borderRadius: BorderRadius.all(Radius.circular(20.0))
-                              ),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0))),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20.0),
-                    
-                       // Reason for Leave
+
+                      // Reason for Leave
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                           Text('Reason',
-                          style: kTextStyle.copyWith(fontWeight: FontWeight.bold),
-                           ),
-                           const SizedBox(height: 8,),
+                          Text(
+                            'Reason',
+                            style: kTextStyle.copyWith(
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
                           TextFormField(
                             controller: descriptionController,
                             keyboardType: TextInputType.multiline,
@@ -727,8 +799,8 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                                   fontWeight: FontWeight.w400),
                               contentPadding: EdgeInsets.all(15.0),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(20.0))
-                              ),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0))),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -740,14 +812,15 @@ String createdDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
                         ],
                       ),
                       const SizedBox(height: 20.0),
-                    
+
                       // Apply Button
                       ButtonGlobal(
                         buttontext: 'Apply',
                         buttonDecoration: kButtonDecoration.copyWith(
-                          color: kMainColor, 
-                          borderRadius: const  BorderRadius.all(Radius.circular(20.0),
-                          )),
+                            color: kMainColor,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(20.0),
+                            )),
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             // Perform the apply leave action if form is valid

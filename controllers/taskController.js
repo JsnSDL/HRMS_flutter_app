@@ -110,8 +110,9 @@ exports.editTask = (req, res) => {
 
 exports.createProject = async (req, res) => {
   let {
-    team_lead_empcode,dept,companyid,createdby_empcode,status,date,
-    project, deadline,description, member_empcodes} = req.body;
+    team_lead_empcode, dept, companyid, createdby_empcode, status, date,
+    project, deadline, description, member_empcodes
+  } = req.body;
 
   // Trim whitespace from input fields
   team_lead_empcode = team_lead_empcode.trim();
@@ -131,52 +132,38 @@ exports.createProject = async (req, res) => {
     // Start a transaction
     await poolConnection.request().query('BEGIN TRANSACTION');
 
-    const teamLeadResult = await poolConnection.request()
+    // Insert team lead into tbl_timesheet_employee for the project
+    const insertTeamLeadResult = await poolConnection.request()
       .input('team_lead_empcode', team_lead_empcode)
-      .query('SELECT id FROM tbl_timesheet_employee WHERE team_lead = @team_lead_empcode');
+      .input('dept', dept || '')
+      .input('companyid', companyid)
+      .input('createdby', createdby_empcode)
+      .input('date', date)
+      .input('status', status)
+      .input('project', project)
+      .query(`
+        INSERT INTO tbl_timesheet_employee (team_lead, dept, companyid, createdby, createddate, status, project)
+        VALUES (@team_lead_empcode, @dept, @companyid, @createdby, @date, @status, @project);
+        SELECT SCOPE_IDENTITY() AS id;
+      `);
 
-    if (teamLeadResult.recordset.length === 0) {
-      console.error('Team lead not found:', team_lead_empcode);
-      const insertTeamLeadResult = await poolConnection.request()
-        .input('team_lead_empcode', team_lead_empcode)
-        .input('dept', dept || '')
-        .input('companyid', companyid)
-        .input('createdby', createdby_empcode)
-        .input('date', date)
-        .input('status', status)
-        .input('project', project)
-        .query(`
-          INSERT INTO tbl_timesheet_employee (team_lead, dept, companyid, createdby, createddate,status, project)
-          VALUES (@team_lead_empcode, @dept, @companyid, @createdby, @date,  @status, @project);
-          SELECT SCOPE_IDENTITY() AS id;
-        `);
-      teamLeadId = insertTeamLeadResult.recordset[0].id;
-    } else {
-      teamLeadId = teamLeadResult.recordset[0].id;
-    }
+    teamLeadId = insertTeamLeadResult.recordset[0].id;
 
     for (const empcode of member_empcodes) {
       const trimmedEmpcode = empcode.trim();
-      // Verify if member exists
-      const memberCheckResult = await poolConnection.request()
-        .input('empcode', trimmedEmpcode)
-        .query('SELECT id FROM tbl_timesheet_insert_employee WHERE empcode = @empcode');
 
-      if (memberCheckResult.recordset.length === 0) {
-        await poolConnection.request()
-          .input('e_id', teamLeadId)
-          .input('empcode', trimmedEmpcode)
-          .input('team_lead', team_lead_empcode)
-          .input('deadline',deadline)
-          .input('description',description)
-          .input('project', project)
-          .query(`
-            INSERT INTO tbl_timesheet_insert_employee (e_id, empcode, team_lead, project,deadline,description)
-            VALUES (@e_id, @empcode, @team_lead, @project,@deadline,@description);
-          `);
-      } else {
-        console.error(`Member ${trimmedEmpcode} already exists in the project`);
-      }
+      // Insert member into tbl_timesheet_insert_employee for the project
+      await poolConnection.request()
+        .input('e_id', teamLeadId)
+        .input('empcode', trimmedEmpcode)
+        .input('team_lead', team_lead_empcode)
+        .input('deadline', deadline)
+        .input('description', description)
+        .input('project', project)
+        .query(`
+          INSERT INTO tbl_timesheet_insert_employee (e_id, empcode, team_lead, project, deadline, description)
+          VALUES (@e_id, @empcode, @team_lead, @project, @deadline, @description);
+        `);
     }
 
     // Commit transaction
@@ -199,6 +186,7 @@ exports.createProject = async (req, res) => {
     }
   }
 };
+
 
 exports.fetchProjectAdmin = (req, res) => {
   const fetchSql = `
@@ -255,7 +243,6 @@ exports.assignProjectTask = async (req, res) => {
     @project, @task, @status, @description, @assignee, CONVERT(date, @deadline, 23)
   )
 `;
-
 pool.request()
   .input('project',project)
   .input('task', task)

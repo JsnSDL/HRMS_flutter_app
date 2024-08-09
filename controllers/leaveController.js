@@ -1,5 +1,7 @@
 require('dotenv').config();
 const pool = require('../utils/database');
+const { getUser } = require('./authController');
+const emailController = require('./mailController');
 const { format, parseISO, getDay, getDate } = require('date-fns');
 
 
@@ -14,161 +16,174 @@ const isSunday = (date) => {
 };
 
 
-exports.insertLeave = (req, res) => {
+exports.insertLeave = async (req, res) => {
   const {
     company_id, empcode, leaveid, leavemode, reason, fromdate, todate, half, no_of_days, leave_adjusted,
     approvel_status, leave_status, flag, status, createddate, createdby, modifieddate, modifiedby
   } = req.body;
 
-  const startDate = parseISO(fromdate);
-  const endDate = parseISO(todate);
+  try {
+    const startDate = parseISO(fromdate);
+    const endDate = parseISO(todate);
 
-  if (isSunday(startDate) || isSunday(endDate) || isSecondOrFourthSaturday(startDate) || isSecondOrFourthSaturday(endDate)) {
-    return res.status(400).json({ message: 'Leave cannot be applied on the second and fourth Saturday and on Sunday' });
-  }
+    // Validate dates
+    if (isSunday(startDate) || isSunday(endDate) || isSecondOrFourthSaturday(startDate) || isSecondOrFourthSaturday(endDate)) {
+      return res.status(400).json({ message: 'Leave cannot be applied on the second and fourth Saturday and on Sunday' });
+    }
 
-  const holidaySql = `
-    SELECT date FROM tbl_leave_holiday
-    WHERE date IN (@fromdate, @todate)
-  `;
+    // Check if the dates are holidays
+    const holidaySql = `
+      SELECT date FROM tbl_leave_holiday
+      WHERE date IN (@fromdate, @todate)
+    `;
+    const holidayResult = await pool.request()
+      .input('fromdate', fromdate)
+      .input('todate', todate)
+      .query(holidaySql);
 
-  pool.request()
-    .input('fromdate', fromdate)
-    .input('todate', todate)
-    .query(holidaySql, (holidayErr, holidayResult) => {
-      if (holidayErr) {
-        console.error('Error checking holiday record: ', holidayErr);
-        return res.status(500).json({ message: 'Error checking holiday record' });
-      }
+    if (holidayResult.recordset.length > 0) {
+      return res.status(400).json({ message: 'Leave cannot be applied on holidays' });
+    }
 
-      if (holidayResult.recordset.length > 0) {
-        return res.status(400).json({ message: 'Leave cannot be applied on holidays' });
-      }
+    // Check for overlapping leave
+    const checkSql = `
+      SELECT * FROM tbl_leave_apply_leave
+      WHERE company_id = @company_id 
+      AND empcode = @empcode 
+      AND ((@fromdate >= fromdate AND @fromdate <= todate) OR (@todate >= fromdate AND @todate <= todate))
+    `;
+    const checkResult = await pool.request()
+      .input('company_id', company_id)
+      .input('empcode', empcode)
+      .input('fromdate', fromdate)
+      .input('todate', todate)
+      .query(checkSql);
 
-      const checkSql = `
-        SELECT * FROM tbl_leave_apply_leave
-        WHERE company_id = @company_id 
-        AND empcode = @empcode 
-        AND ((@fromdate >= fromdate AND @fromdate <= todate) OR (@todate >= fromdate AND @todate <= todate))
-      `;
+    const overlappingLeave = checkResult.recordset.find(leave => {
+      const leaveFromDate = new Date(leave.fromdate);
+      const leaveToDate = new Date(leave.todate);
+      const newFromDate = new Date(fromdate);
+      const newToDate = new Date(todate);
 
-      pool.request()
-        .input('company_id', company_id)
-        .input('empcode', empcode)
-        .input('fromdate', fromdate)
-        .input('todate', todate)
-        .query(checkSql, (checkErr, checkResult) => {
-          if (checkErr) {
-            console.error('Error checking leave record: ', checkErr);
-            return res.status(500).json({ message: 'Error checking leave record' });
-          }
-
-          if (checkResult.recordset.length > 0) {
-            const overlappingLeave = checkResult.recordset.find(leave => {
-              const leaveFromDate = new Date(leave.fromdate);
-              const leaveToDate = new Date(leave.todate);
-              const newFromDate = new Date(fromdate);
-              const newToDate = new Date(todate);
-
-              return (
-                (newFromDate >= leaveFromDate && newFromDate <= leaveToDate) ||
-                (newToDate >= leaveFromDate && newToDate <= leaveToDate)
-              );
-            });
-
-            if (overlappingLeave) {
-              return res.status(400).json({ message: 'Leave dates overlap with existing leave' });
-            }
-          }
-
-          let leaveData = {
-            1: { total: 0, used: 0 }, // Loss of Pay (No limit)
-            2: { total: 6.0, used: 0 }, // Sick Leave
-            3: { total: 12.0, used: 0 } // Earned/Casual Leave
-          };
-
-          checkResult.recordset.forEach(record => {
-            leaveData[record.leaveid].used += record.no_of_days || 0;
-          });
-
-          if (leaveid !== 1 && (leaveData[leaveid].used + no_of_days > leaveData[leaveid].total)) {
-            let leaveType = leaveid === 2 ? 'Sick Leave' : 'Earned/Casual Leave';
-            return res.status(400).json({ message: `${leaveType} balance is insufficient` });
-          }
-
-          const insertSql = `
-            INSERT INTO tbl_leave_apply_leave (
-              company_id, 
-              empcode, 
-              leaveid, 
-              leavemode, 
-              reason, 
-              fromdate, 
-              todate, 
-              half, 
-              no_of_days,
-              leave_adjusted,
-              approvel_status,
-              leave_status,
-              flag,
-              status,
-              createddate,
-              createdby,
-              modifieddate,
-              modifiedby
-            ) 
-            VALUES (
-              @company_id, 
-              @empcode, 
-              @leaveid, 
-              @leavemode, 
-              @reason, 
-              @fromdate, 
-              @todate, 
-              @half, 
-              @no_of_days,
-              @leave_adjusted,
-              @approvel_status,
-              @leave_status,
-              @flag,
-              @status,
-              @createddate,
-              @createdby,
-              @modifieddate,
-              @modifiedby
-            )
-          `;
-
-          pool.request()
-            .input('company_id', company_id)
-            .input('empcode', empcode)
-            .input('leaveid', leaveid)
-            .input('leavemode', leavemode)
-            .input('reason', reason)
-            .input('fromdate', fromdate)
-            .input('todate', todate)
-            .input('half', half)
-            .input('no_of_days', no_of_days)
-            .input('leave_adjusted', leave_adjusted)
-            .input('approvel_status', approvel_status)
-            .input('leave_status', leave_status)
-            .input('flag', flag)
-            .input('status', status)
-            .input('createddate', createddate)
-            .input('createdby', createdby)
-            .input('modifieddate', modifieddate)
-            .input('modifiedby', modifiedby)
-            .query(insertSql, (insertErr, insertResult) => {
-              if (insertErr) {
-                console.error('Error inserting leave record: ', insertErr);
-                return res.status(500).json({ message: 'Error inserting leave record' });
-              }
-              res.status(200).json({ message: 'Leave record inserted successfully' });
-            });
-        });
+      return (
+        (newFromDate >= leaveFromDate && newFromDate <= leaveToDate) ||
+        (newToDate >= leaveFromDate && newToDate <= leaveToDate)
+      );
     });
-};
 
+    if (overlappingLeave) {
+      return res.status(400).json({ message: 'Leave dates overlap with existing leave' });
+    }
+
+    // Check leave balance
+    let leaveData = {
+      1: { total: 0, used: 0 }, // Loss of Pay (No limit)
+      2: { total: 6.0, used: 0 }, // Sick Leave
+      3: { total: 12.0, used: 0 } // Earned/Casual Leave
+    };
+
+    checkResult.recordset.forEach(record => {
+      leaveData[record.leaveid].used += record.no_of_days || 0;
+    });
+
+    if (leaveid !== 1 && (leaveData[leaveid].used + no_of_days > leaveData[leaveid].total)) {
+      let leaveType = leaveid === 2 ? 'Sick Leave' : 'Earned/Casual Leave';
+      return res.status(400).json({ message: `${leaveType} balance is insufficient` });
+    }
+
+    // Insert leave record
+    const insertSql = `
+      INSERT INTO tbl_leave_apply_leave (
+        company_id, 
+        empcode, 
+        leaveid, 
+        leavemode, 
+        reason, 
+        fromdate, 
+        todate, 
+        half, 
+        no_of_days,
+        leave_adjusted,
+        approvel_status,
+        leave_status,
+        flag,
+        status,
+        createddate,
+        createdby,
+        modifieddate,
+        modifiedby
+      ) 
+      VALUES (
+        @company_id, 
+        @empcode, 
+        @leaveid, 
+        @leavemode, 
+        @reason, 
+        @fromdate, 
+        @todate, 
+        @half, 
+        @no_of_days,
+        @leave_adjusted,
+        @approvel_status,
+        @leave_status,
+        @flag,
+        @status,
+        @createddate,
+        @createdby,
+        @modifieddate,
+        @modifiedby
+      )
+    `;
+    await pool.request()
+      .input('company_id', company_id)
+      .input('empcode', empcode)
+      .input('leaveid', leaveid)
+      .input('leavemode', leavemode)
+      .input('reason', reason)
+      .input('fromdate', fromdate)
+      .input('todate', todate)
+      .input('half', half)
+      .input('no_of_days', no_of_days)
+      .input('leave_adjusted', leave_adjusted)
+      .input('approvel_status', approvel_status)
+      .input('leave_status', leave_status)
+      .input('flag', flag)
+      .input('status', status)
+      .input('createddate', createddate)
+      .input('createdby', createdby)
+      .input('modifieddate', modifieddate)
+      .input('modifiedby', modifiedby)
+      .query(insertSql);
+
+    // Fetch employee details
+    const sql = `
+      SELECT 
+        ejd.empcode,
+        ejd.emp_fname, 
+        ejd.official_email_id
+      FROM tbl_intranet_employee_jobDetails ejd
+      JOIN tbl_intranet_designation des ON ejd.degination_id = des.id
+      WHERE ejd.empcode = @empcode
+    `;
+    const userResult = await pool.request()
+      .input('empcode', empcode)
+      .query(sql);
+
+    if (userResult.recordset.length > 0) {
+      const empName = userResult.recordset[0].emp_fname;
+      const official_email_id = userResult.recordset[0].official_email_id;
+      emailController.sendLeaveApplicationEmails(empName, official_email_id, fromdate, todate);
+      return res.status(200).json({ message: 'Leave record inserted successfully and email sent' });
+    } else {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+  } catch (error) {
+    console.error('Error processing leave application: ', error);
+    return res.status(error.status || 500).json({ message: error.message || 'Internal server error' });
+  }
+};
+    
 exports.checkLeaveExists = (req, res) => {
   const { company_id, empcode, fromdate, createddate } = req.body;
 
@@ -279,7 +294,7 @@ exports.fetchLeave = (req, res) => {
     });
 };
 
-exports.editLeave = (req, res) => {
+exports.editLeave = async (req, res) => {
   const {
     id,
     empcode,
@@ -292,98 +307,130 @@ exports.editLeave = (req, res) => {
     no_of_days,
   } = req.body;
 
-  // Query to check leave balance for the employee excluding the current leave record
-  const checkSql = `
-    SELECT leaveid, SUM(no_of_days) AS days_used
-    FROM tbl_leave_apply_leave
-    WHERE empcode = @empcode AND id != @id
-    GROUP BY leaveid
-  `;
+  try {
+    const startDate = parseISO(fromdate);
+    const endDate = parseISO(todate);
 
-  pool.request()
-    .input('empcode', empcode)
-    .input('id', id)
-    .query(checkSql, (checkErr, checkResult) => {
-      if (checkErr) {
-        console.error('Error checking leave record: ', checkErr);
-        return res.status(500).json({ message: 'Error checking leave record' });
-      }
-      
-      let leaveData = {
-        1: { total: 0, used: 0 }, 
-        2: { total: 6.0, used: 0 }, 
-        3: { total: 12.0, used: 0 } 
-      };
-      
-      checkResult.recordset.forEach(record => {
-        leaveData[record.leaveid].used = record.days_used || 0;
-      });
+    // Validate dates
+    if (isSunday(startDate) || isSunday(endDate) || isSecondOrFourthSaturday(startDate) || isSecondOrFourthSaturday(endDate)) {
+      return res.status(400).json({ message: 'Leave cannot be applied on the second and fourth Saturday and on Sunday' });
+    }
 
-      if (leaveid !== 1 && (leaveData[leaveid].used + no_of_days > leaveData[leaveid].total)) {
-        let leaveType = leaveid === 2 ? 'Sick Leave' : 'Earned/Casual Leave';
-        return res.status(400).json({ message: `${leaveType} balance is insufficient` });
-      }
+    // Check if the dates are holidays
+    const holidaySql = `
+      SELECT date FROM tbl_leave_holiday
+      WHERE date IN (@fromdate, @todate)
+    `;
+    const holidayResult = await pool.request()
+      .input('fromdate', fromdate)
+      .input('todate', todate)
+      .query(holidaySql);
 
-      // Query to check overlapping dates with other leave records
-      const overlapCheckSql = `
-        SELECT id
-        FROM tbl_leave_apply_leave
-        WHERE empcode = @empcode
-          AND id != @id
-          AND ((@fromdate >= fromdate AND @fromdate <= todate)
-               OR (@todate >= fromdate AND @todate <= todate))
-      `;
+    if (holidayResult.recordset.length > 0) {
+      return res.status(400).json({ message: 'Leave cannot be applied on holidays' });
+    }
 
-      pool.request()
-        .input('empcode', empcode)
-        .input('id', id)
-        .input('fromdate', fromdate)
-        .input('todate', todate)
-        .query(overlapCheckSql, (overlapErr, overlapResult) => {
-          if (overlapErr) {
-            console.error('Error checking overlapping leave dates: ', overlapErr);
-            return res.status(500).json({ message: 'Error checking overlapping leave dates' });
-          }
+    // Check for overlapping leave
+    const overlapCheckSql = `
+      SELECT id
+      FROM tbl_leave_apply_leave
+      WHERE empcode = @empcode
+        AND id != @id
+        AND ((@fromdate >= fromdate AND @fromdate <= todate)
+             OR (@todate >= fromdate AND @todate <= todate))
+    `;
+    const overlapResult = await pool.request()
+      .input('empcode', empcode)
+      .input('id', id)
+      .input('fromdate', fromdate)
+      .input('todate', todate)
+      .query(overlapCheckSql);
 
-          if (overlapResult.recordset.length > 0) {
-            return res.status(400).json({ message: 'Leave dates overlap with existing leave' });
-          }
+    if (overlapResult.recordset.length > 0) {
+      return res.status(400).json({ message: 'Leave dates overlap with existing leave' });
+    }
 
-          // Proceed with updating the leave record
-          const updateSql = `
-            UPDATE tbl_leave_apply_leave 
-            SET 
-              leaveid = @leaveid, 
-              leavemode = @leavemode, 
-              reason = @reason, 
-              fromdate = @fromdate, 
-              todate = @todate, 
-              half = @half, 
-              no_of_days = @no_of_days
-            WHERE 
-              id = @id 
-          `;
+    // Check leave balance
+    const checkSql = `
+      SELECT leaveid, SUM(no_of_days) AS days_used
+      FROM tbl_leave_apply_leave
+      WHERE empcode = @empcode AND id != @id
+      GROUP BY leaveid
+    `;
+    const checkResult = await pool.request()
+      .input('empcode', empcode)
+      .input('id', id)
+      .query(checkSql);
 
-          pool.request()
-            .input('id', id)
-            .input('leaveid', leaveid)
-            .input('leavemode', leavemode)
-            .input('reason', reason)
-            .input('fromdate', fromdate)
-            .input('todate', todate)
-            .input('half', half)
-            .input('no_of_days', no_of_days)
-            .query(updateSql, (editErr, editResult) => {
-              if (editErr) {
-                console.error('Error updating leave record: ', editErr);
-                return res.status(500).json({ message: 'Error editing leave record' });
-              }
-              res.status(200).json({ message: 'Leave record edited successfully' });
-            });
-        });
+    let leaveData = {
+      1: { total: 0, used: 0 }, // Loss of Pay (No limit)
+      2: { total: 6.0, used: 0 }, // Sick Leave
+      3: { total: 12.0, used: 0 } // Earned/Casual Leave
+    };
+
+    checkResult.recordset.forEach(record => {
+      leaveData[record.leaveid].used = record.days_used || 0;
     });
-};
 
+    if (leaveid !== 1 && (leaveData[leaveid].used + no_of_days > leaveData[leaveid].total)) {
+      let leaveType = leaveid === 2 ? 'Sick Leave' : 'Earned/Casual Leave';
+      return res.status(400).json({ message: `${leaveType} balance is insufficient` });
+    }
+
+    // Proceed with updating the leave record
+    const updateSql = `
+      UPDATE tbl_leave_apply_leave 
+      SET 
+        leaveid = @leaveid, 
+        leavemode = @leavemode, 
+        reason = @reason, 
+        fromdate = @fromdate, 
+        todate = @todate, 
+        half = @half, 
+        no_of_days = @no_of_days
+      WHERE 
+        id = @id 
+    `;
+
+    await pool.request()
+      .input('id', id)
+      .input('leaveid', leaveid)
+      .input('leavemode', leavemode)
+      .input('reason', reason)
+      .input('fromdate', fromdate)
+      .input('todate', todate)
+      .input('half', half)
+      .input('no_of_days', no_of_days)
+      .query(updateSql);
+
+    // Fetch employee details
+    const sql = `
+      SELECT 
+        ejd.empcode,
+        ejd.emp_fname, 
+        ejd.official_email_id
+      FROM tbl_intranet_employee_jobDetails ejd
+      JOIN tbl_intranet_designation des ON ejd.degination_id = des.id
+      WHERE ejd.empcode = @empcode
+    `;
+    const userResult = await pool.request()
+      .input('empcode', empcode)
+      .query(sql);
+
+    if (userResult.recordset.length > 0) {
+      const empName = userResult.recordset[0].emp_fname;
+      const official_email_id = userResult.recordset[0].official_email_id;
+      emailController.sendLeaveApplicationEmails(empName, official_email_id, fromdate, todate);
+      return res.status(200).json({ message: 'Leave record updated successfully and email sent' });
+    } else {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+  } catch (error) {
+    console.error('Error processing leave application: ', error);
+    return res.status(error.status || 500).json({ message: error.message || 'Internal server error' });
+  }
+};
 
 exports.leaveToApprove =(req,res)=>{
   const { empcode } = req.body; 
@@ -416,7 +463,6 @@ exports.leaveToApprove =(req,res)=>{
       res.status(200).json({ leaveRecords });
     });
 }
-
 
 exports.leaveApprove = (req, res) => {
   const { id, leaveid, empcode, approve } = req.body;
