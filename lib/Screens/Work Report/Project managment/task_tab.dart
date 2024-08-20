@@ -86,6 +86,17 @@ class _TasksTabState extends State<TasksTab> {
                   ),
                 ),
                 const SizedBox(height: 20.0),
+                 if (taskData.isEmpty)
+                  Center(
+                    child: Text(
+                      'No tasks available',
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  )
+                else
                 ...taskData
                     .map((task) => _buildTaskCard(
                           context,
