@@ -104,7 +104,8 @@ class _TasksTabState extends State<TasksTab> {
                 ),
                 const SizedBox(height: 20.0),
                  if (taskData.isEmpty)
-                  Center(
+                  Container(
+                    margin:const EdgeInsets.only(top:220,left: 100),
                     child: Text(
                       'No tasks available',
                       style: TextStyle(
