@@ -474,7 +474,51 @@ class _EditLeavePageState extends State<EditLeavePage> {
                         ],
                       ),
                       const SizedBox(height: 20.0),
-                    
+                    // Time Pickers (only shown for HalfDay)
+ if (selectedTypeOfDay == 'HalfDay') ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Select Half Day Mode',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: const Color.fromRGBO(192, 190, 190, 1),
+                                  width: 1.5,
+                                ),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(15.0),
+                                ),
+                              ),
+                              child: CustomDropdown(
+                                items: shiftOfHalf.values.toList(),
+                                hintText: 'Select Half Mode',
+                                initialItem: selectedShift,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    selectedShift = newValue.toString();
+                                    shift = shiftOfHalf.keys.firstWhere(
+                                      (key) => shiftOfHalf[key] == newValue,
+                                      orElse: () =>
+                                          0, // Default value if not found
+                                    );
+                                  });
+                                },
+                                decoration: const CustomDropdownDecoration(
+                                  expandedBorderRadius: BorderRadius.all(
+                                    Radius.circular(20.0),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 20.0),
                       // Remaining Leaves (calculated automatically)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -610,51 +654,7 @@ class _EditLeavePageState extends State<EditLeavePage> {
                         ],
                       ),
                       const SizedBox(height: 20.0),
-                      // Time Pickers (only shown for HalfDay)
- if (selectedTypeOfDay == 'HalfDay') ...[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Select Half Day Mode',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8.0),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color.fromRGBO(192, 190, 190, 1),
-                                  width: 1.5,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(15.0),
-                                ),
-                              ),
-                              child: CustomDropdown(
-                                items: shiftOfHalf.values.toList(),
-                                hintText: 'Select Half Mode',
-                                initialItem: selectedShift,
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    selectedShift = newValue.toString();
-                                    shift = shiftOfHalf.keys.firstWhere(
-                                      (key) => shiftOfHalf[key] == newValue,
-                                      orElse: () =>
-                                          0, // Default value if not found
-                                    );
-                                  });
-                                },
-                                decoration: const CustomDropdownDecoration(
-                                  expandedBorderRadius: BorderRadius.all(
-                                    Radius.circular(20.0),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      const SizedBox(height: 20.0),
+                      
                          // Number of Days (calculated automatically based on From Date and To Date)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
