@@ -1,7 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hrm_employee/Screens/Birthday%20Notification/birthday_notification.dart';
 import 'package:hrm_employee/Screens/Birthday%20Notification/birthday_wish.dart';
+import 'package:hrm_employee/providers/user_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:nb_utils/nb_utils.dart';
 
 class BirthdayCardPage extends StatefulWidget {
   final Employee employee;
@@ -13,14 +19,87 @@ class BirthdayCardPage extends StatefulWidget {
 }
 
 class _BirthdayCardPageState extends State<BirthdayCardPage> {
-  late String birthdayWish;
+  late UserData userData;
+  String userName = "";
   final TextEditingController _wishController = TextEditingController();
+  late String birthdayWish;
 
   @override
   void initState() {
     super.initState();
+    userData = Provider.of<UserData>(context, listen: false);
     birthdayWish =
         'Wishing you a fantastic day filled with\njoy and happiness!';
+    fetchUserName();
+    print('Employee code: ${widget.employee.emplyoeecode}');
+  }
+
+  Future<void> fetchUserName() async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.1.8:3000/auth/getUser'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${userData.token}',
+        },
+        body: json.encode({
+          'empcode': userData.userID,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          userName = json.decode(response.body)['empName'];
+        });
+        print('Fetched userName: $userName'); // Debug print
+      } else {
+        throw Exception('Failed to load user data');
+      }
+    } catch (error) {
+      print('Error fetching userName: $error');
+      // Handle error here, e.g., show a message to the user
+    }
+  }
+
+  void sendWish() async {
+    Map<String, dynamic> wishValues = {
+      'empcode': userData.userID,
+      'fName': userName, // Ensure userName is populated correctly here
+      'createdDate': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'receiverEmpcode': widget.employee.emplyoeecode,
+      'receiverFName': widget.employee.name,
+      'receiverWish': birthdayWish,
+    };
+
+    print('Sending wish with values: $wishValues');
+
+    String jsonData = jsonEncode(wishValues);
+
+    String url = 'http://192.168.1.8:3000/notification/send';
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${userData.token}',
+        },
+        body: jsonData,
+      );
+
+      if (response.statusCode == 200) {
+        print('Wish posted successfully');
+        toast('Wish applied successfully');
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => BirthdayNotificationsPage()));
+      } else {
+        print('Failed to post wish: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception while posting Task: $e');
+    }
   }
 
   @override
@@ -235,15 +314,7 @@ class _BirthdayCardPageState extends State<BirthdayCardPage> {
   Widget _buildSendButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AnimatedBirthdayPage(
-              name: widget.employee.name,
-              wish: birthdayWish,
-            ),
-          ),
-        );
+        sendWish();
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,

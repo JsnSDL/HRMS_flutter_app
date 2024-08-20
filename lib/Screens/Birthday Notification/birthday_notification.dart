@@ -14,13 +14,15 @@ import 'package:hrm_employee/providers/user_provider.dart';
 class Employee {
   final String name;
   final DateTime birthday;
+  final String? emplyoeecode;
 
-  Employee({required this.name, required this.birthday});
+  Employee({required this.name, required this.birthday,required this.emplyoeecode});
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
       name: json['name'],
       birthday: DateTime.parse(json['dob']),
+      emplyoeecode: json['empcode'],
     );
   }
 }
