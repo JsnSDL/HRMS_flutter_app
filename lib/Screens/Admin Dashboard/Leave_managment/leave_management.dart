@@ -54,9 +54,11 @@ class _LeaveManagementPageState extends State<LeaveManagementPage> {
           leaveData = leaveRecords.map((record) {
             String leaveType;
             if (record['leaveType'] == 1) {
-              leaveType = 'Casual';
+              leaveType = 'Loss Of Pay';
+            } else if (record['leaveType'] == 2) {
+              leaveType = 'Sick Leave';
             } else if (record['leaveType'] == 3) {
-              leaveType = 'Plan';
+              leaveType = 'Earned/Casual Leave';
             } else {
               leaveType = 'Unknown';
             }
