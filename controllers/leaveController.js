@@ -1,6 +1,5 @@
 require('dotenv').config();
 const pool = require('../utils/database');
-const { getUser } = require('./authController');
 const emailController = require('./mailController');
 const { format, parseISO, getDay, getDate } = require('date-fns');
 
@@ -477,25 +476,68 @@ exports.leaveApprove = (req, res) => {
   const leaveStatus = approve ? 6 : 3; 
 
   const updateSql = `
-    UPDATE tbl_leave_apply_leave
-    SET approvel_status = @approvalStatus, leave_status = @leaveStatus
-    WHERE id = @id AND empcode = @empcode
+      UPDATE tbl_leave_apply_leave
+      SET approvel_status = @approvalStatus, leave_status = @leaveStatus
+      WHERE id = @id AND empcode = @empcode
   `;
 
-  pool.request()
-    .input('id',id)
-    .input('leaveid', leaveid)
-    .input('empcode', empcode)
-    .input('approvalStatus', approvalStatus)
-    .input('leaveStatus', leaveStatus)
-    .query(updateSql, (updateErr, updateResult) => {
+  // SQL to fetch leave details along with employee information after the update
+  const fetchSql = `
+      SELECT 
+        l.id, 
+        l.empcode, 
+        l.fromdate, 
+        l.todate, 
+        l.approvel_status, 
+        l.leave_status,
+        ejd.emp_fname, 
+        ejd.official_email_id
+      FROM tbl_leave_apply_leave l
+      JOIN tbl_intranet_employee_jobDetails ejd ON l.empcode = ejd.empcode
+      WHERE l.id = @id AND l.empcode = @empcode
+  `;
+
+  const request = pool.request()
+      .input('id', id)
+      .input('leaveid', leaveid)
+      .input('empcode', empcode)
+      .input('approvalStatus', approvalStatus)
+      .input('leaveStatus', leaveStatus);
+
+  // Update the leave record
+  request.query(updateSql, (updateErr, updateResult) => {
       if (updateErr) {
-        console.error('Error updating leave record: ', updateErr);
-        return res.status(500).json({ message: 'Error updating leave record', error: updateErr });
+          console.error('Error updating leave record: ', updateErr);
+          return res.status(500).json({ message: 'Error updating leave record', error: updateErr });
       }
 
-      res.status(200).json({ message: 'Leave record updated successfully' });
-    });
+      // Fetch the updated leave details and employee information
+      pool.request()
+          .input('id', id)
+          .input('empcode', empcode)
+          .query(fetchSql, (fetchErr, fetchResult) => {
+              if (fetchErr) {
+                  console.error('Error fetching leave and employee details: ', fetchErr);
+                  return res.status(500).json({ message: 'Error fetching leave and employee details', error: fetchErr });
+              }
+
+              if (fetchResult.recordset.length > 0) {
+                  const leaveData = fetchResult.recordset[0];
+                  const { emp_fname, official_email_id, fromdate, todate } = leaveData;
+
+                  // Send the leave status email
+                  emailController.sendLeaveStatus(
+                      emp_fname,
+                      official_email_id,
+                      fromdate,
+                      todate,
+                      approvalStatus
+                  );
+
+                  res.status(200).json({ message: 'Leave record updated successfully' });
+              } else {
+                  res.status(404).json({ message: 'Leave record not found' });
+              }
+          });
+  });
 };
-
-

@@ -2,7 +2,7 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const emailTemplates = require('../utils/emailTemplate');
 
-const approverName = 'Vani Satwik';
+const approverName = 'Vani Sathwik';
 
 // Create a transporter object using the SMTP transport
 let transporter = nodemailer.createTransport({
@@ -37,7 +37,7 @@ exports.sendLeaveApplicationEmails = (employeeName, employeeEmail, fromdate, tod
 
     const approverMailOptions = {
         from:process.env.EMAIL_USER,
-        to: 'rakesh.d@sdlglobe.com',
+        to: 'mallikarjun.b@sdlglobe.com',
         subject: 'New Leave Application',
         text: toApprover
     };
@@ -59,4 +59,46 @@ exports.sendLeaveApplicationEmails = (employeeName, employeeEmail, fromdate, tod
             console.log('Email sent to approver:', info.messageId);
         }
     });
+};
+
+exports.sendLeaveStatus = (employeeName, employeeEmail, fromdate, todate, approvalStatus) => {
+    let emailContent;
+    let subject;
+    
+    if (approvalStatus === 1) {
+        // Leave approved
+        emailContent = emailTemplates.leaveApplicationApproved.toEmployee
+            .replace('(Employee Name)', employeeName)
+            .replace('(Approver Name)', approverName)
+            .replace('(DD-MON-YYYY)', fromdate)
+            .replace('(DD-MON-YYYY)', todate);
+
+        subject = 'Leave Application Approved';
+    } else {
+        // Leave rejected
+        emailContent = emailTemplates.leaveApplicationRejected.toEmployee
+            .replace('(Employee Name)', employeeName)
+            .replace('(Approver Name)', approverName)
+            .replace('(DD-MON-YYYY)', fromdate)
+            .replace('(DD-MON-YYYY)', todate);
+
+        subject = 'Leave Application Rejected';
+    }
+    
+    const employeeMailOptions = {
+        from: process.env.EMAIL_USER,
+        to: employeeEmail,
+        subject: subject,
+        text: emailContent
+    };
+
+    // Send email to employee
+    transporter.sendMail(employeeMailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email to employee:', error);
+        } else {
+            console.log('Email sent to employee:', info.messageId);
+        }
+    });
+
 };

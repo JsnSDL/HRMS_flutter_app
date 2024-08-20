@@ -44,7 +44,7 @@ class _LeaveApplicationState extends State<LeaveApplication> {
   Future<void> fetchLeaveData() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.8:3000/leave/get'),
+        Uri.parse('http://192.168.1.5:3000/leave/get'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',

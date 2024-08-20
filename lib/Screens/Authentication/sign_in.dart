@@ -127,7 +127,6 @@ class _SignInState extends State<SignIn> {
     await prefs.remove('token');
     await prefs.remove('userID');
     await prefs.remove('role');
-
   }
 
   @override
