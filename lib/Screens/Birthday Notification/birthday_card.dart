@@ -235,15 +235,7 @@ class _BirthdayCardPageState extends State<BirthdayCardPage> {
   Widget _buildSendButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AnimatedBirthdayPage(
-              name: widget.employee.name,
-              wish: birthdayWish,
-            ),
-          ),
-        );
+        sendWish();
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
