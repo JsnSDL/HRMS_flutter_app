@@ -114,7 +114,6 @@ class _OutworkSubmissionState extends State<OutworkSubmission> {
       );
 
       if (response.statusCode == 200) {
-        print('Task posted successfully');
         toast('Task applied successfully');
         Navigator.push(
             context,

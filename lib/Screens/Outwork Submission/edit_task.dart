@@ -91,7 +91,6 @@ class _TaskEditPageState extends State<TaskEditPage> {
 
   Future<void> _updateTask() async {
     if (selectedDate == null) {
-      print('Invalid end date');
       return;
     }
 
@@ -121,7 +120,6 @@ class _TaskEditPageState extends State<TaskEditPage> {
       'end_date': endDate.toIso8601String(), // Ensure to convert to UTC string
       'status': statusId[_status],
     });
-    print(body);
     try {
       final response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {

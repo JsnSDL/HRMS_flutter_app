@@ -57,7 +57,6 @@ Future<void> fetchAllUsers() async {
       });
     } else {
       print('Failed to load users data with status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
       throw Exception('Failed to load users data');
     }
   } catch (error) {

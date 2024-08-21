@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hrm_employee/Screens/Birthday%20Notification/birthday_notification.dart';
 import 'package:hrm_employee/Screens/Birthday%20Notification/birthday_wish.dart';
+import 'package:hrm_employee/Screens/Home/home_screen.dart';
 import 'package:hrm_employee/providers/user_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -31,13 +32,12 @@ class _BirthdayCardPageState extends State<BirthdayCardPage> {
     birthdayWish =
         'Wishing you a fantastic day filled with\njoy and happiness!';
     fetchUserName();
-    print('Employee code: ${widget.employee.emplyoeecode}');
   }
 
   Future<void> fetchUserName() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.8:3000/auth/getUser'),
+        Uri.parse('http://192.168.1.5:3000/auth/getUser'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${userData.token}',
@@ -51,13 +51,11 @@ class _BirthdayCardPageState extends State<BirthdayCardPage> {
         setState(() {
           userName = json.decode(response.body)['empName'];
         });
-        print('Fetched userName: $userName'); // Debug print
       } else {
         throw Exception('Failed to load user data');
       }
     } catch (error) {
       print('Error fetching userName: $error');
-      // Handle error here, e.g., show a message to the user
     }
   }
 
@@ -71,11 +69,9 @@ class _BirthdayCardPageState extends State<BirthdayCardPage> {
       'receiverWish': birthdayWish,
     };
 
-    print('Sending wish with values: $wishValues');
-
     String jsonData = jsonEncode(wishValues);
 
-    String url = 'http://192.168.1.8:3000/notification/send';
+    String url = 'http://192.168.1.5:3000/notification/send';
 
     try {
       final response = await http.post(
@@ -88,12 +84,11 @@ class _BirthdayCardPageState extends State<BirthdayCardPage> {
       );
 
       if (response.statusCode == 200) {
-        print('Wish posted successfully');
-        toast('Wish applied successfully');
+        toast('You have Wished!');
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => BirthdayNotificationsPage()));
+                builder: (context) => HomeScreen()));
       } else {
         print('Failed to post wish: ${response.statusCode}');
       }

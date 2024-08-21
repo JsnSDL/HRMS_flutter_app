@@ -67,7 +67,6 @@ class _LeaveApplicationState extends State<LeaveApplication> {
             String dateRange = _getDateRange(record);
             String dayType = _getDayType(record['half']);
             String status = _getLeaveStatus(record);
-            print(dayType);
 
             return LeaveData(
               id: record['id'] ?? 0,
@@ -403,7 +402,6 @@ class LeaveData extends StatelessWidget {
                       String shift = dateRange.contains('First Half')
                           ? 'First Half'
                           : 'Second Half';
-                      print(shift);
                       Navigator.push(
                         context,
                         MaterialPageRoute(

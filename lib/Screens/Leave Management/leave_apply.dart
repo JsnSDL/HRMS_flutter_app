@@ -156,7 +156,6 @@ class _LeaveApplyState extends State<LeaveApply> {
   }
 
  void checkAndUpdateRemainingLeaves() async {
-  print('checkAndUpdateRemainingLeaves called');
   String url = 'http://192.168.1.5:3000/leave/remain';
 
   Map<String, dynamic> requestBody = {

@@ -49,6 +49,7 @@ class _NotificationpageState extends State<Notificationpage> {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
+
         if (jsonData['birthdayWishes'] != null) {
           List<Employee> fetchedNotifications =
               (jsonData['birthdayWishes'] as List)
@@ -61,7 +62,6 @@ class _NotificationpageState extends State<Notificationpage> {
           // Filter notifications based on createdDate
           filterNotifications();
         } else {
-          print('No birthday wishes found');
         }
       } else {
         print('Failed to fetch notifications: ${response.statusCode}');
@@ -74,9 +74,15 @@ class _NotificationpageState extends State<Notificationpage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
+      backgroundColor:
+          (userData.userID == 'SDL001' || userData.userID == 'SDL002')
+              ? const Color.fromARGB(255, 84, 27, 94)
+              : kMainColor,
       appBar: AppBar(
-        backgroundColor: (userData.userID == 'SDL001' || userData.userID == 'SDL002') ? const Color.fromARGB(255, 84, 27, 94) : kMainColor,
+        backgroundColor:
+            (userData.userID == 'SDL001' || userData.userID == 'SDL002')
+                ? const Color.fromARGB(255, 84, 27, 94)
+                : kMainColor,
         title: const Text(
           'Notifications',
           style: TextStyle(color: Colors.white),
@@ -160,7 +166,9 @@ class NotificationTile extends StatelessWidget {
             CircleAvatar(
               backgroundColor: Colors.blue,
               child: Text(
-                notification.name[0].toUpperCase(),
+                notification.name.isNotEmpty
+                    ? notification.name[0].toUpperCase()
+                    : '?', // Fallback character
                 style: const TextStyle(color: Colors.white),
               ),
             ),
